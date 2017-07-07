@@ -7,4 +7,5 @@ ipython
 pyyaml
 requests
 slacker-log-handler
+sqlalchemy
 tox

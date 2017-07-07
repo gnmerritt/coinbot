@@ -1,3 +1,4 @@
+import datetime
 import ccxt
 
 
@@ -6,11 +7,15 @@ def lower_key(my_dict):
 
 
 class CcxtExchange:
-    def fetch_ticker(self, symbol):
+    def fetch_ticker(self, coin):
+        symbol = self.make_symbol(coin)
         json = lower_key(self.ccxt.fetch_ticker(symbol))
         info = lower_key(json['info'])
+        timestamp = datetime.datetime.utcfromtimestamp(json['timestamp'] / 1e3)
         values = {
-            'timestamp': json['timestamp'],
+            'exchange': self.name,
+            'coin': coin,
+            'timestamp': timestamp,
             'bid': json['bid'],
             'ask': json['ask'],
             'last': json['last'],
@@ -21,7 +26,7 @@ class CcxtExchange:
 
 class Bittrex(CcxtExchange):
     COINS = [
-        'USDT-BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH',
+        'BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH',
         'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM'
     ]
 
@@ -33,12 +38,12 @@ class Bittrex(CcxtExchange):
     def make_symbol(self, coin):
         if coin.find('BTC') == -1:
             return 'BTC-' + coin
-        return coin
+        return 'USDT-BTC'
 
 
 class Bitfinex(CcxtExchange):
     COINS = [
-        'BTCUSD', 'ZEC', 'ETH', 'XRP', 'DSH', 'XMR', 'LTC', 'IOT'
+        'BTC', 'ZEC', 'ETH', 'XRP', 'DSH', 'XMR', 'LTC', 'IOT'
     ]
 
     def __init__(self, config):
@@ -49,4 +54,4 @@ class Bitfinex(CcxtExchange):
     def make_symbol(self, coin):
         if coin.find('BTC') == -1:
             return coin + 'BTC'
-        return coin
+        return 'BTCUSD'
