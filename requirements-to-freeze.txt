@@ -1,0 +1,10 @@
+# Put human readable requirements in here, 'pip freeze > requirements.txt'
+# https://www.kennethreitz.org/essays/a-better-pip-workflow
+ccxt
+flake8
+httpie
+ipython
+pyyaml
+requests
+slacker-log-handler
+tox
