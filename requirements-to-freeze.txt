@@ -10,3 +10,4 @@ slacker-log-handler
 sqlalchemy
 tox
 pandas
+ipdb

@@ -23,8 +23,15 @@ def query(sess, config):
     print("got {} entries".format(len(entries)))
     print(entries)
 
+
+def ipython(sess, config):
+    import ipdb
+    ipdb.set_trace()
+
+
 ACTIONS = {
     'update': update,
+    'ipython': ipython,
     'query': query,
 }
 
