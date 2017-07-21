@@ -7,6 +7,14 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 
+def construct(obj, initial_data, kwargs):
+    for dictionary in initial_data:
+        for key in dictionary:
+            setattr(obj, key, dictionary[key])
+    for key in kwargs:
+        setattr(obj, key, kwargs[key])
+
+
 class Ticker(Base):
     __tablename__ = "history"
     id = Column(Integer, primary_key=True)
@@ -21,11 +29,7 @@ class Ticker(Base):
     volume = Column(Float)
 
     def __init__(self, *initial_data, **kwargs):
-        for dictionary in initial_data:
-            for key in dictionary:
-                setattr(self, key, dictionary[key])
-        for key in kwargs:
-            setattr(self, key, kwargs[key])
+        construct(self, initial_data, kwargs)
 
     def __repr__(self):
         return "Ticker(exchange={}, coin={}, last={}, timestamp={})" \
