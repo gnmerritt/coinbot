@@ -9,3 +9,4 @@ requests
 slacker-log-handler
 sqlalchemy
 tox
+pandas
