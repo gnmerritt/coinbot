@@ -1,15 +1,45 @@
 from datetime import timedelta
 from db import Ticker
 
+HOURS = [1, 3, 6, 12, 24, 48, 72, 168, 240]
 
-HOURS = [1, 6, 12, 24, 48, 72, 168, 336]
 
-
-def run_strategy(sess, now, ticker):
-    print(
-        "Running moving averages strategy for '{}' at '{}'".format(ticker, now)
-    )
+def run_strategy(sess, now, ticker, debug=False):
+    if debug:
+        print("Running moving averages strategy for '{}' at '{}'"
+              .format(ticker, now))
     buckets, prices = fetch_data(sess, now, ticker)
+    hour_avgs = avg_by_hour(now, buckets, prices)
+    if debug:
+        print("Averages by hour: {}".format(hour_avgs))
+
+    last_hour = hour_avgs[1]
+    percent_strength = [hour_avgs[hour] / last_hour for hour in HOURS[1:]]
+
+    weak_buy = all_above(percent_strength[:4], 1.07)  # past 24 hours
+    strong_buy = all_above(percent_strength, 1.14)  # past 10 days
+
+    buy_str = "buy of '{}' ask {} @ {}".format(ticker, last_hour, now)
+    if strong_buy:
+        print("Strong " + buy_str)
+        return (1, ticker)
+    if weak_buy:
+        print("Weak " + buy_str)
+        return (0.5, ticker)
+
+    if debug:
+        print("No " + buy_str)
+    return None
+
+
+def all_above(list, threshold):
+    for i in list:
+        if i <= threshold:
+            return False
+    return True
+
+
+def avg_by_hour(now, buckets, prices):
     strengths_by_hours = {}
     deltas = {h: now - timedelta(hours=h) for h in HOURS}
 
@@ -23,7 +53,7 @@ def run_strategy(sess, now, ticker):
             strengths_by_hours[k] = added
 
     avg_by_hour = {k: sum(p) / len(p) for k, p in strengths_by_hours.items()}
-    print("Averages by hour: {}".format(avg_by_hour))
+    return avg_by_hour
 
 
 def fetch_data(sess, now, ticker):
