@@ -1,7 +1,10 @@
 from datetime import timedelta
 from db import Ticker
 
-HOURS = [1, 3, 6, 12, 24, 48, 72, 168, 240]
+HOURS = [1, 3, 6, 12, 24, 48, 72, 168]
+
+WEAK = 1.07
+STRONG = 1.12
 
 
 def run_strategy(sess, now, ticker, debug=False):
@@ -13,22 +16,28 @@ def run_strategy(sess, now, ticker, debug=False):
     if debug:
         print("Averages by hour: {}".format(hour_avgs))
 
-    last_hour = hour_avgs[1]
-    percent_strength = [hour_avgs[hour] / last_hour for hour in HOURS[1:]]
+    current_price = hour_avgs.get(1)
+    if current_price is None:
+        if debug:
+            print("No price for {} @ {}".format(ticker, now))
+        return None
+    percent_strength = [hour_avgs[hour] / current_price for hour in HOURS[1:]]
 
-    weak_buy = all_above(percent_strength[:4], 1.07)  # past 24 hours
-    strong_buy = all_above(percent_strength, 1.14)  # past 10 days
+    weak_buy = all_above(percent_strength[:3], WEAK)  # past 24 hours
+    strong_buy = weak_buy and all_above(percent_strength, STRONG)  # 7 days
 
-    buy_str = "buy of '{}' ask {} @ {}".format(ticker, last_hour, now)
+    buy_str = "buy of '{}' ask {} @ {}".format(ticker, current_price, now)
     if strong_buy:
         print("Strong " + buy_str)
-        return (1, ticker)
+        return 1, current_price
     if weak_buy:
         print("Weak " + buy_str)
-        return (0.5, ticker)
+        return 0.5, current_price
 
     if debug:
         print("No " + buy_str)
+        print("  weak {}".format([p > WEAK for p in percent_strength[:3]]))
+        print("  strong {}".format([p > STRONG for p in percent_strength[2:]]))
     return None
 
 

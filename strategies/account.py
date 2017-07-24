@@ -12,6 +12,10 @@ class Account(object):
             coin: period for coin, bal in self.balances.items()
             if bal > 0}
 
+    @property
+    def coins(self):
+        return [c for c, v in self.balances.items() if v > 0]
+
     def balance(self, coin):
         return self.balances.get(coin, 0)
 
@@ -20,6 +24,10 @@ class Account(object):
 
     def last_txn(self, coin):
         return self.last_txns.get(coin)
+
+    def trade(self, coin, units, unit_price, period=None):
+        self.update(coin, units, period)
+        return -1 * units * unit_price
 
     def update(self, coin, amount, period=None):
         if period is None:

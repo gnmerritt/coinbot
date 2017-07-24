@@ -1,7 +1,7 @@
 import sys
 import config
 import datetime
-from backtest import run_backtest, fetch_data_timestamp
+from backtest import Backtester, fetch_data_timestamp
 from apis import Bitfinex, Bittrex
 from db import create_db, new_session, Ticker
 
@@ -33,12 +33,14 @@ def ipython(sess, config):
 
 def data(sess, config):
     print("Current time is {}".format(datetime.datetime.utcnow()))
-    print("Earliest entry is at {}".format(fetch_data_timestamp(sess, oldest=True)))
-    print("Latest entry is at {}".format(fetch_data_timestamp(sess, oldest=False)))
+    print("Earliest entry is at {}".format(fetch_data_timestamp(sess)))
+    print("Latest entry is at {}"
+          .format(fetch_data_timestamp(sess, oldest=False)))
 
 
 def backtest(sess, config):
-    run_backtest(sess)
+    tester = Backtester(sess)
+    tester.run_backtest()
 
 
 ACTIONS = {
