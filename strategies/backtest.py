@@ -41,16 +41,23 @@ class Backtester(object):
 
         period = self.start_data
         account = Account(self.balances, period)
+        start_value = account_value_btc(self.sess, account)
+
         print("\nAccount value at beginning of period ({}): {} BTC\n"
-              .format(self.start_data, account_value_btc(self.sess, account)))
+              .format(self.start_data, start_value))
 
         while period < self.now - self.step:
             period += self.step
             self.backtest_period(period, account)
 
+        finish_value = account_value_btc(self.sess, account)
+        percent_return = 100 * (finish_value - start_value) / finish_value
+
         print("\n\nTransactions:\n{}\n\n".format(account.txns))
         print("\nBalance after running backest ({}): {} BTC\n"
-              .format(self.now, account_value_btc(self.sess, account)))
+              .format(self.now, finish_value))
+        print("Paid {} BTC in fees".format(account.fees))
+        print("Return over period: {}".format(percent_return))
 
     def backtest_period(self, period, account):
         for coin in self.coins:

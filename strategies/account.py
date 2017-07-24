@@ -11,6 +11,7 @@ class Account(object):
         self.position_open_datetimes = {
             coin: period for coin, bal in self.balances.items()
             if bal > 0}
+        self.fees = 0
 
     @property
     def coins(self):
@@ -25,9 +26,16 @@ class Account(object):
     def last_txn(self, coin):
         return self.last_txns.get(coin)
 
-    def trade(self, coin, units, unit_price, period=None):
+    def trade(self, coin, units, unit_price, period=None, fees=0.0025):
         self.update(coin, units, period)
-        return -1 * units * unit_price
+        fee = fees * units * unit_price
+        self.fees += fee
+        gross = units * unit_price
+        if gross > 0:
+            gross += fee
+        else:
+            gross -= fee
+        return -1 * gross
 
     def update(self, coin, amount, period=None):
         if period is None:

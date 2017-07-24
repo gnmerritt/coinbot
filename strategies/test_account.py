@@ -44,8 +44,15 @@ class TestAccount(unittest.TestCase):
             account.update('BTC', -10)
         self.assertIn('Saw overdraft of -10 for BTC (bal=0)', ctx.exception)
 
-    def test_trade(self):
+    def test_buy(self):
         account = Account()
         cost = account.trade('DCR', 10, 0.1)  # 10 @ 0.1 = 1 BTC
-        self.assertEqual(cost, -1)
+        self.assertEqual(cost, -1.002)
         self.assertEqual(account.balance('DCR'), 10)
+
+    def test_sell(self):
+        account = Account()
+        account.update('DCR', 10)
+        proceeds = account.trade('DCR', -5, 0.1)
+        self.assertEqual(proceeds, 0.499)
+        self.assertEqual(account.balance('DCR'), 5)
