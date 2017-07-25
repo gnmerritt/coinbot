@@ -1,7 +1,7 @@
 from datetime import timedelta
 from db import Ticker
 
-HOURS = [1, 3, 6, 12, 24, 48, 72, 168]
+HOURS = [1, 6, 12, 24, 48, 72, 168]
 
 WEAK = 1.07
 STRONG = 1.12

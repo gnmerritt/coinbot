@@ -1,6 +1,6 @@
 from db import Ticker
 
-DROP_PERCENT = 0.1
+DROP_PERCENT = 0.04
 
 
 def run_strategy(sess, now, ticker, account, debug=False):
