@@ -4,6 +4,7 @@ import datetime
 from backtest import Backtester, fetch_data_timestamp
 from apis import Bitfinex, Bittrex
 from db import create_db, new_session, Ticker
+from slack import setup_loggers
 
 
 def update(sess, config):
@@ -59,11 +60,12 @@ if __name__ == "__main__":
         action = 'update'
 
     parsed = config.read_config(config_file)
-    print("got config")
-    print(parsed)
+    print("got config: {}".format(parsed))
 
     db = create_db(parsed['db'])
     sess = new_session(db)
+
+    setup_loggers(parsed['slack'])
 
     print("--Running '{}'--".format(action))
     func = ACTIONS[action]
