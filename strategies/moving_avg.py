@@ -1,7 +1,7 @@
 from datetime import timedelta
 from db import Ticker
 
-HOURS = [1, 6, 12, 24, 48, 72, 168]
+HOURS = [1, 6, 12, 24, 48, 72, 120]
 
 WEAK = 1.07
 STRONG = 1.12
@@ -11,7 +11,11 @@ def run_strategy(sess, now, ticker, debug=False):
     if debug:
         print("Running moving averages strategy for '{}' at '{}'"
               .format(ticker, now))
-    buckets, prices = fetch_data(sess, now, ticker)
+    data = fetch_data(sess, now, ticker)
+    if data is None:
+        return None
+
+    buckets, prices = data
     hour_avgs = avg_by_hour(now, buckets, prices)
     if debug:
         print("Averages by hour: {}".format(hour_avgs))
@@ -67,13 +71,20 @@ def avg_by_hour(now, buckets, prices):
 
 def fetch_data(sess, now, ticker):
     time_cutoff = now - timedelta(hours=max(HOURS))
+    first_data = sess.query(Ticker.timestamp) \
+        .filter(Ticker.timestamp < now) \
+        .filter(Ticker.timestamp > time_cutoff) \
+        .order_by(Ticker.timestamp) \
+        .first()
+    if first_data[0] > time_cutoff + timedelta(hours=6):
+        return None
+
     alt_raw = sess.query(Ticker) \
         .filter(Ticker.coin == ticker) \
         .filter(Ticker.timestamp < now) \
         .filter(Ticker.timestamp > time_cutoff) \
         .all()
-    buckets, prices = bucket_15m(alt_raw)
-    return buckets, prices
+    return bucket_15m(alt_raw)
 
 
 # https://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object-python
