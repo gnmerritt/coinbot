@@ -3,8 +3,16 @@ import config
 import datetime
 from backtest import Backtester, fetch_data_timestamp
 from apis import Bitfinex, Bittrex
-from db import create_db, new_session, Ticker
+from db import create_db, new_session, Ticker, Balance
+from durable_account import DurableAccount
 from slack import setup_loggers
+
+
+def account(sess, config):
+    name = config['account']
+    print("Fetching account '{}' @ bittrex".format(name))
+    account = DurableAccount.from_db(sess, name, exchange='bittrex')
+    print(account)
 
 
 def update(sess, config):
@@ -45,6 +53,7 @@ def backtest(sess, config):
 
 
 ACTIONS = {
+    'account': account,
     'backtest': backtest,
     'data': data,
     'update': update,
@@ -67,6 +76,8 @@ if __name__ == "__main__":
 
     setup_loggers(parsed['slack'])
 
+    func = ACTIONS.get(action)
+    if func is None:
+        raise ValueError("valid actions are {}".format(list(ACTIONS.keys())))
     print("--Running '{}'--".format(action))
-    func = ACTIONS[action]
     func(sess, parsed)

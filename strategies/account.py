@@ -2,15 +2,18 @@ from datetime import datetime
 
 
 class Account(object):
-    def __init__(self, initial_balances={}, period=None):
+    def __init__(self, initial_balances={}, period=None, opens=None):
         if period is None:
             period = datetime.utcnow()
         self.balances = initial_balances.copy()
         self.txns = []
         self.last_txns = {}
-        self.position_open_datetimes = {
-            coin: period for coin, bal in self.balances.items()
-            if bal > 0}
+        if opens is None:
+            self.position_open_datetimes = {
+                coin: period for coin, bal in self.balances.items()
+                if bal > 0}
+        else:
+            self.position_open_datetimes = opens
         self.fees = 0
 
     @property
@@ -37,10 +40,11 @@ class Account(object):
             gross -= fee
         return -1 * gross
 
-    def update(self, coin, amount, period=None):
+    def update(self, coin, amount_in, period=None):
+        amount = float(amount_in)
         if period is None:
             period = datetime.utcnow()
-        current = self.balances.get(coin, 0)
+        current = self.balances.get(coin, 0.0)
         new = current + amount
         if new < 0:
             raise Exception("Saw overdraft of {} for {} (bal={})"
@@ -50,7 +54,7 @@ class Account(object):
         self.txns.append(txn)
         self.last_txns[coin] = txn
 
-        if new == 0:
+        if new == 0 and coin in self.position_open_datetimes:
             del self.position_open_datetimes[coin]
         if current == 0:
             self.position_open_datetimes[coin] = period

@@ -1,3 +1,4 @@
 config.yaml
 coinbot.db
 data/
+**/__pycache__

@@ -1,5 +1,6 @@
+from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, Float, String, DateTime
+from sqlalchemy import Column, Integer, Float, String, DateTime, Index
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
@@ -61,6 +62,48 @@ class Ticker(Base):
         if now is None:
             return query
         return query.filter(Ticker.timestamp <= now)
+
+
+class Balance(Base):
+    __tablename__ = "balances"
+    __table_args__ = (
+        Index("uniq_coins", "name", "coin", "exchange", unique=True),
+    )
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(12))
+
+    exchange = Column(String(20))
+    coin = Column(String(10))
+
+    opened = Column(DateTime)
+    last_updated = Column(DateTime)
+    balance = Column(Float)
+
+    def __init__(self, *initial_data, **kwargs):
+        construct(self, initial_data, kwargs)
+
+    def __repr__(self):
+        return "Balance(name={}, coin={}, exchange={}, balance={})" \
+               .format(self.name, self.coin, self.exchange, self.balance)
+
+    @staticmethod
+    def upsert(sess, balance, **kwargs):
+        existing = sess.query(Balance).filter_by(**kwargs).one_or_none()
+        now = datetime.utcnow()
+        if existing is None:
+            existing = Balance(**kwargs)
+            existing.opened = now
+        existing.balance = balance
+        existing.last_updated = now
+        sess.add(existing)
+        return existing
+
+    @staticmethod
+    def remove(sess, **kwargs):
+        existing = sess.query(Balance).filter_by(**kwargs).one_or_none()
+        if existing:
+            sess.delete(existing)
 
 
 def create_db(db_string):
