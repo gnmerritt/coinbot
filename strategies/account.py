@@ -2,10 +2,13 @@ from datetime import datetime
 
 
 class Account(object):
-    def __init__(self, initial_balances={}, period=None, opens=None):
+    def __init__(self, initial_balances={}, period=None, opens=None, coins=[]):
         if period is None:
             period = datetime.utcnow()
         self.balances = initial_balances.copy()
+        for coin in coins:
+            if coin not in self.balances:
+                self.balances[coin] = 0.0
         self.txns = []
         self.last_txns = {}
         if opens is None:

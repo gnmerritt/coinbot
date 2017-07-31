@@ -30,7 +30,8 @@ class DurableAccount(Account):
         if not name or not exchange:
             raise ValueError("Must specify acount name and exchange")
         balances, opens = DurableAccount.fetch_balances(sess, name, exchange)
-        return DurableAccount(name, exchange, balances, opens)
+        coins = Ticker.coins(sess)
+        return DurableAccount(name, exchange, balances, opens, coins)
 
     @staticmethod
     def fetch_balances(sess, name, exchange):

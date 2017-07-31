@@ -30,13 +30,17 @@ class Backtester(object):
         self.balances = {'BTC': 5}
         self.start_data = fetch_data_timestamp(sess, oldest=True)
         self.now = fetch_data_timestamp(sess, oldest=False)
-        self.coins = [t[0] for t in sess.query(Ticker.coin).distinct().all()]
-        self.coins.remove('BTC')
+        self.coins = Ticker.coins(sess)
         self.step = step
 
     def run_backtest(self):
         self.run_strategy()
         self.buy_and_hold()
+
+    def log_value(self, account, period):
+        value = account_value_btc(self.sess, account)
+        print("\nAccount value at {}: {} BTC\n"
+              .format(period, round(value, 3)))
 
     def run_strategy(self):
         print("Backtesting for currencies: {}".format(self.coins))
@@ -44,19 +48,16 @@ class Backtester(object):
               .format(self.start_data, self.now, self.step))
 
         period = self.start_data
-        account = Account(self.balances, period)
+        account = Account(self.balances, period, coins=self.coins)
         start_value = account_value_btc(self.sess, account)
 
-        print("\nAccount value at beginning of period ({}): {} BTC\n"
-              .format(self.start_data, start_value))
         i = 0
-
         while period < self.now - self.step:
             period += self.step
-            bot.tick_coin(self.sess, account, period, 'IOT')
+            bot.tick(self.sess, account, period)
             i += 1
             if i % (2 * 6 * 24) == 0:  # every 2 days
-                print(period)
+                self.log_value(account, period)
 
         finish_value = account_value_btc(self.sess, account)
         percent_return = 100 * (finish_value - start_value) / finish_value

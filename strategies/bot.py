@@ -9,8 +9,10 @@ txns = logging.getLogger('txns')
 
 def tick(sess, account, period):
     for coin in account.all_coins:
+        if coin == 'BTC':
+            continue  # TODO
         try:
-            tick_coin(account, period, coin)
+            tick_coin(sess, account, period, coin)
         except Exception as e:
             log.error("Got error at {},{}: {}".format(coin, period, e))
             raise e

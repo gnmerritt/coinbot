@@ -63,6 +63,10 @@ class Ticker(Base):
             return query
         return query.filter(Ticker.timestamp <= now)
 
+    @staticmethod
+    def coins(sess):
+        return [t[0] for t in sess.query(Ticker.coin).distinct().all()]
+
 
 class Balance(Base):
     __tablename__ = "balances"
