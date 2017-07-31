@@ -1,6 +1,6 @@
 from datetime import timedelta
-from moving_avg import run_strategy as moving_avg_strat
-from stop_loss import run_strategy as stop_loss_strat
+
+import bot
 from db import Ticker
 from account import Account
 
@@ -49,10 +49,14 @@ class Backtester(object):
 
         print("\nAccount value at beginning of period ({}): {} BTC\n"
               .format(self.start_data, start_value))
+        i = 0
 
         while period < self.now - self.step:
             period += self.step
-            self.backtest_period(period, account)
+            bot.tick_coin(self.sess, account, period, 'IOT')
+            i += 1
+            if i % (2 * 6 * 24) == 0:  # every 2 days
+                print(period)
 
         finish_value = account_value_btc(self.sess, account)
         percent_return = 100 * (finish_value - start_value) / finish_value
@@ -70,9 +74,9 @@ class Backtester(object):
         start = self.start_data + timedelta(hours=2)
         # one share of each alt, one share of BTC
         btc_per_coin = account.balance('BTC') / (len(self.coins) + 1)
+        with_fees = btc_per_coin - (btc_per_coin * 0.0025)
 
-        for i, coin in enumerate(self.coins):
-            with_fees = btc_per_coin - (btc_per_coin * 0.0025)
+        for coin in self.coins:
             price = Ticker.current_ask(self.sess, coin, now=start)
             to_buy = with_fees / price
             cost = account.trade(coin, to_buy, price, start)
@@ -90,34 +94,3 @@ class Backtester(object):
         print("Return over period: {}%".format(round(percent_return, 2)))
 
         return percent_return
-
-    def backtest_period(self, period, account):
-        for coin in self.coins:
-            try:
-                self.apply_strategy(period, coin, account)
-            except Exception as e:
-                print("Got error at {},{}: {}".format(coin, period, e))
-                raise e
-
-    def apply_strategy(self, period, coin, account):
-        if account.balance(coin) > 0:
-            action = stop_loss_strat(self.sess, period, coin, account)
-            if action:
-                fraction, price = action
-                units_to_sell = fraction * account.balance(coin)
-                print("  Before sell: {}".format(account))
-                proceeds = account.trade(coin, units_to_sell, price, period)
-                account.update('BTC', proceeds, period)
-                print("  After sell: {}".format(account))
-                return
-
-        bought = moving_avg_strat(self.sess, period, coin)
-        if bought:
-            fraction, price = bought
-            to_spend = (account.balance('BTC') * 0.1) * fraction
-            units_to_buy = to_spend / price
-
-            print("  Before buy: {}".format(account))
-            cost = account.trade(coin, units_to_buy, price, period)
-            account.update('BTC', cost, period)
-            print("  After buy: {}".format(account))

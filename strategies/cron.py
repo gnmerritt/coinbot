@@ -1,6 +1,8 @@
 import sys
 import config
 import datetime
+
+import bot
 from backtest import Backtester, fetch_data_timestamp
 from apis import Bitfinex, Bittrex
 from db import create_db, new_session, Ticker, Balance
@@ -13,9 +15,11 @@ def account(sess, config):
     print("Fetching account '{}' @ bittrex".format(name))
     account = DurableAccount.from_db(sess, name, exchange='bittrex')
     print(account)
+    return account
 
 
 def update(sess, config):
+    """"Pull data from the exchanges and store it in our database"""
     exchanges = {
         'Bittrex': Bittrex(parsed),
         'Bitfinex': Bitfinex(parsed)
@@ -27,6 +31,12 @@ def update(sess, config):
             sess.add(Ticker(data))
 
     sess.commit()
+
+
+def tick(sess, config):
+    """Run our strategies for the current time"""
+    acct = account(sess, config)
+    bot.tick(sess, acct, period=datetime.datetime.utcnow())
 
 
 def query(sess, config):
@@ -58,6 +68,7 @@ ACTIONS = {
     'data': data,
     'update': update,
     'ipython': ipython,
+    'tick': tick,
     'query': query,
 }
 
@@ -74,7 +85,8 @@ if __name__ == "__main__":
     db = create_db(parsed['db'])
     sess = new_session(db)
 
-    setup_loggers(parsed['slack'])
+    if parsed.get('production'):
+        setup_loggers(parsed['slack'])
 
     func = ACTIONS.get(action)
     if func is None:

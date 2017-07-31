@@ -20,6 +20,10 @@ class Account(object):
     def coins(self):
         return [c for c, v in self.balances.items() if v > 0]
 
+    @property
+    def all_coins(self):
+        return list(self.balances.keys())
+
     def balance(self, coin):
         return self.balances.get(coin, 0)
 
@@ -58,6 +62,9 @@ class Account(object):
             del self.position_open_datetimes[coin]
         if current == 0:
             self.position_open_datetimes[coin] = period
+
+    def save(self, *args):
+        pass
 
     def __str__(self):
         return "Account({})".format(self.balances)
