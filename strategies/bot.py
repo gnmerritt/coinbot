@@ -57,7 +57,7 @@ def make_transaction(account, coin, units, price, period):
     verb = "Buy" if units > 0 else "Sell"
     log.debug("  Before {}: {}".format(verb, account))
     cost = account.trade(coin, units, price, period)
-    txns.warn("{}: {} {} of {} @ {} BTC"
-              .format(str(period), verb, units, coin, price))
+    txns.warn("{}: {} {} of {} @ {} BTC ({})"
+              .format(str(period), verb, units, coin, price, cost))
     account.update('BTC', cost, period)
     log.warn("  After {}: {}".format(verb, account))

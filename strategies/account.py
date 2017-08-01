@@ -70,4 +70,5 @@ class Account(object):
         pass
 
     def __str__(self):
-        return "Account({})".format(self.balances)
+        non_empty = {c: b for c, b in self.balances.items() if b > 0}
+        return "Account({})".format(non_empty)
