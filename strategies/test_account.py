@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import unittest
-from account import Account
+from .account import Account
 
 
 class TestAccount(unittest.TestCase):
@@ -42,7 +42,8 @@ class TestAccount(unittest.TestCase):
         account = Account()
         with self.assertRaises(Exception) as ctx:
             account.update('BTC', -10)
-        self.assertIn('Saw overdraft of -10.0 for BTC (bal=0)', ctx.exception)
+        self.assertIn('Saw overdraft of -10.0 for BTC (bal=0)',
+                      str(ctx.exception))
 
     def test_buy(self):
         account = Account()
