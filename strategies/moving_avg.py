@@ -71,20 +71,17 @@ def avg_by_hour(now, buckets, prices):
 
 def fetch_data(sess, now, ticker):
     time_cutoff = now - timedelta(hours=max(HOURS))
-    first_data = sess.query(Ticker.timestamp) \
-        .filter(Ticker.timestamp < now) \
-        .filter(Ticker.timestamp > time_cutoff) \
-        .order_by(Ticker.timestamp) \
-        .first()
-    if first_data[0] > time_cutoff + timedelta(hours=6):
-        return None
+    data_start_cutoff = time_cutoff + timedelta(hours=12)
 
     alt_raw = sess.query(Ticker) \
         .filter(Ticker.coin == ticker) \
         .filter(Ticker.timestamp < now) \
         .filter(Ticker.timestamp > time_cutoff) \
         .all()
-    return bucket_15m(alt_raw)
+    buckets, bucketed = bucket_15m(alt_raw)
+    if buckets[0] > data_start_cutoff:
+        return None
+    return buckets, bucketed
 
 
 # https://stackoverflow.com/questions/3463930/how-to-round-the-minute-of-a-datetime-object-python
