@@ -1,16 +1,16 @@
 from account import Account
-from db import Balance
+from db import Balance, Ticker
 
 
 class DurableAccount(Account):
-    def __init__(self, name, exchange, balances={}, opens=None):
-        super().__init__(balances, opens=opens)
+    def __init__(self, name, exchange, balances={}, opens=None, coins=[]):
+        super().__init__(balances, opens=opens, coins=coins)
         self.name = name
         self.exchange = exchange
 
     def __str__(self):
         return "DurableAccount(name={}, exchange={}, balances={})" \
-               .format(self.name, self.exchange, self.balances)
+               .format(self.name, self.exchange, self.open_balances)
 
     def save(self, sess):
         old_balances, _ = \

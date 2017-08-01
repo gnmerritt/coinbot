@@ -27,6 +27,10 @@ class Account(object):
     def all_coins(self):
         return list(self.balances.keys())
 
+    @property
+    def open_balances(self):
+        return {c: b for c, b in self.balances.items() if b > 0}
+
     def balance(self, coin):
         return self.balances.get(coin, 0)
 
@@ -70,5 +74,4 @@ class Account(object):
         pass
 
     def __str__(self):
-        non_empty = {c: b for c, b in self.balances.items() if b > 0}
-        return "Account({})".format(non_empty)
+        return "Account({})".format(self.open_balances)

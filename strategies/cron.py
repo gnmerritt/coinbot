@@ -1,6 +1,7 @@
 import sys
 import config
 import datetime
+import logging
 
 import bot
 from backtest import Backtester, fetch_data_timestamp
@@ -8,6 +9,8 @@ from apis import Bitfinex, Bittrex
 from db import create_db, new_session, Ticker, Balance
 from durable_account import DurableAccount
 from slack import setup_loggers
+
+log = logging.getLogger('default')
 
 
 def account(sess, config):
@@ -35,8 +38,11 @@ def update(sess, config):
 
 def tick(sess, config):
     """Run our strategies for the current time"""
+    start = datetime.datetime.utcnow()
     acct = account(sess, config)
-    bot.tick(sess, acct, period=datetime.datetime.utcnow())
+    bot.tick(sess, acct, period=start)
+    elapsed = datetime.datetime.utcnow() - start
+    log.info("Ran tick in {}s".format(elapsed.seconds))
 
 
 def query(sess, config):
