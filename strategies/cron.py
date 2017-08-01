@@ -85,10 +85,9 @@ ACTIONS = {
 
 if __name__ == "__main__":
     config_file = sys.argv[1]
-    try:
-        action = sys.argv[2]
-    except IndexError:
-        action = 'update'
+    actions = sys.argv[2:]
+    if not actions:
+        actions = ['update']
 
     parsed = config.read_config(config_file)
     print("got config: {}".format(parsed))
@@ -99,8 +98,9 @@ if __name__ == "__main__":
     if parsed.get('production'):
         setup_loggers(parsed['slack'])
 
-    func = ACTIONS.get(action)
-    if func is None:
-        raise ValueError("valid actions are {}".format(list(ACTIONS.keys())))
-    print("--Running '{}'--".format(action))
-    func(sess, parsed)
+    for action in actions:
+        func = ACTIONS.get(action)
+        if func is None:
+            raise ValueError("valid actions are {}".format(list(ACTIONS.keys())))
+        print("--Running '{}'--".format(action))
+        func(sess, parsed)
