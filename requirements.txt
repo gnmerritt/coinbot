@@ -32,7 +32,9 @@ simplegeneric==0.8.1
 six==1.10.0
 slacker==0.9.42
 slacker-log-handler==1.6.1
+snakeviz==0.4.1
 SQLAlchemy==1.1.11
+tornado==4.5.1
 tox==2.7.0
 traitlets==4.3.2
 urllib3==1.21.1

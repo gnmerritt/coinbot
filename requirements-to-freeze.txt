@@ -8,6 +8,7 @@ nose
 pyyaml
 requests
 slacker-log-handler
+snakeviz
 sqlalchemy
 tox
 pandas
