@@ -4,6 +4,7 @@ ccxt
 flake8
 httpie
 ipython
+nose
 pyyaml
 requests
 slacker-log-handler
