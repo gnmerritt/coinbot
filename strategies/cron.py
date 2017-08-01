@@ -10,7 +10,7 @@ from db import create_db, new_session, Ticker, Balance
 from durable_account import DurableAccount
 from slack import setup_loggers
 
-log = logging.getLogger('default')
+log = logging.getLogger('cron')
 
 
 def account(sess, config):
@@ -27,6 +27,7 @@ def update(sess, config):
         'Bittrex': Bittrex(parsed),
         'Bitfinex': Bitfinex(parsed)
     }
+    start = datetime.datetime.utcnow()
     for name, exch in exchanges.items():
         print(name)
         for coin in exch.COINS:
@@ -34,6 +35,8 @@ def update(sess, config):
             sess.add(Ticker(data))
 
     sess.commit()
+    elapsed = datetime.datetime.utcnow() - start
+    log.info("Ran update in {}s".format(elapsed.seconds))
 
 
 def tick(sess, config):
