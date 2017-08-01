@@ -4,7 +4,7 @@ import datetime
 import logging
 
 import bot
-from backtest import Backtester, fetch_data_timestamp
+from backtest import Backtester, fetch_data_timestamp, account_value_btc
 from apis import Bitfinex, Bittrex
 from db import create_db, new_session, Ticker, Balance
 from durable_account import DurableAccount
@@ -13,11 +13,13 @@ from slack import setup_loggers
 log = logging.getLogger('cron')
 
 
-def account(sess, config):
+def account(sess, config, verbose=True):
     name = config['account']
-    print("Fetching account '{}' @ bittrex".format(name))
+    log.debug("Fetching account '{}' @ bittrex".format(name))
     account = DurableAccount.from_db(sess, name, exchange='bittrex')
-    print(account)
+    if verbose:
+        value = account_value_btc(sess, account)
+        log.info("{} with current value of {} BTC".format(account, value))
     return account
 
 
@@ -42,7 +44,7 @@ def update(sess, config):
 def tick(sess, config):
     """Run our strategies for the current time"""
     start = datetime.datetime.utcnow()
-    acct = account(sess, config)
+    acct = account(sess, config, verbose=False)
     bot.tick(sess, acct, period=start)
     elapsed = datetime.datetime.utcnow() - start
     log.info("Ran tick in {}s".format(elapsed.seconds))
