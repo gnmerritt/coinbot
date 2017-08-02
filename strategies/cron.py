@@ -3,7 +3,7 @@ import config
 import datetime
 import logging
 
-import bot
+from bot import Bot
 from backtest import Backtester, fetch_data_timestamp, account_value_btc
 from apis import Bitfinex, Bittrex
 from db import create_db, new_session, Ticker, Balance
@@ -45,7 +45,8 @@ def tick(sess, config):
     """Run our strategies for the current time"""
     start = datetime.datetime.utcnow()
     acct = account(sess, config, verbose=False)
-    bot.tick(sess, acct, period=start)
+    bot = Bot(sess, acct, now=start)
+    bot.tick(period=start)
     elapsed = datetime.datetime.utcnow() - start
     log.info("Ran tick in {}s".format(elapsed.seconds))
 

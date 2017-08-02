@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-import bot
+from bot import Bot
 from db import Ticker
 from account import Account
 
@@ -50,11 +50,12 @@ class Backtester(object):
         period = self.start_data
         account = Account(self.balances, period, coins=self.coins)
         start_value = account_value_btc(self.sess, account)
+        bot = Bot(self.sess, account, beginning=self.start_data, now=self.now)
 
         i = 0
         while period < self.now - self.step:
             period += self.step
-            bot.tick(self.sess, account, period)
+            bot.tick(period)
             i += 1
             if i % (2 * 6 * 24) == 0:  # every 2 days
                 self.log_value(account, period)
@@ -66,7 +67,7 @@ class Backtester(object):
         print("\nBalance after running backest ({}): {} BTC\n"
               .format(self.now, finish_value))
         print("Paid {} BTC in fees".format(account.fees))
-        print("Return over period: {}%".format(round(percent_return)))
+        print("Return over period: {}%".format(round(percent_return, 2)))
 
         return percent_return
 

@@ -2,3 +2,4 @@ config.yaml
 coinbot.db
 data/
 **/__pycache__
+*.bak
