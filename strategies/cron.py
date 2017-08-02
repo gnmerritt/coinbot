@@ -72,11 +72,11 @@ def strengths(sess, config):
     coins = list(strengths.keys())
     coins.sort()
     for coin in coins:
-        strength = strengths.get(coin)
+        price, strength = strengths.get(coin)
         with_hours = zip(hours, strength)
         formatted = " ".join(
             ["{}%".format(round(100 * s, 2)).ljust(9)
-            for h, s in with_hours])
+             for h, s in with_hours])
         msg.append("{}:  {}".format(coin.rjust(6), formatted))
 
     msg.append("```")
