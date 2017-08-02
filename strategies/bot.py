@@ -22,6 +22,10 @@ class Bot(object):
             for ticker in account.all_coins:
                 self.moving_avg.fetch_data(ticker, now, beginning)
 
+    def calculate_strengths(self, period):
+        return {coin: self.moving_avg.calculate_strengths(period, coin)
+                for coin in self.account.all_coins}
+
     def tick(self, period):
         for coin in self.account.all_coins:
             if coin == 'BTC':

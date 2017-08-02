@@ -51,6 +51,36 @@ def tick(sess, config):
     log.info("Ran tick in {}s".format(elapsed.seconds))
 
 
+def strengths(sess, config):
+    """Print the current relative strengths of altcoins"""
+    acct = account(sess, config, verbose=False)
+    now = datetime.datetime.utcnow()
+    bot = Bot(sess, acct)
+    strengths = bot.calculate_strengths(now)
+
+    msg = ["Coin strengths (>100% = stronger than period, <100% = weaker)"]
+    msg.append("```")
+    # header row
+    hours = bot.moving_avg.HOURS[1:]  # TODO: make this less fiddly
+    msg.append("{} {}".format(
+        "coin  ".rjust(8),
+        " ".join(["{}hrs".format(h).ljust(9) for h in hours])))
+    msg.append("")
+
+    coins = list(strengths.keys())
+    coins.sort()
+    for coin in coins:
+        strength = strengths.get(coin)
+        with_hours = zip(hours, strength)
+        formatted = " ".join(
+            ["{}%".format(round(100 * s, 2)).ljust(9)
+            for h, s in with_hours])
+        msg.append("{}:  {}".format(coin.rjust(6), formatted))
+
+    msg.append("```")
+    log.info("\n".join(msg))
+
+
 def query(sess, config):
     entries = sess.query(Ticker).all()
     print("got {} entries".format(len(entries)))
@@ -82,6 +112,7 @@ ACTIONS = {
     'ipython': ipython,
     'tick': tick,
     'query': query,
+    'strengths': strengths,
 }
 
 if __name__ == "__main__":
