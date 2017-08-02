@@ -6,7 +6,7 @@ import logging
 from bot import Bot
 from backtest import Backtester, fetch_data_timestamp, account_value_btc
 from apis import Bitfinex, Bittrex
-from db import create_db, new_session, Ticker, Balance
+from db import create_db, new_session, Ticker
 from durable_account import DurableAccount
 from slack import setup_loggers
 
