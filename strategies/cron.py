@@ -38,7 +38,8 @@ def update(sess, config):
 
     sess.commit()
     elapsed = datetime.datetime.utcnow() - start
-    log.info("Ran update in {}s".format(elapsed.seconds))
+    if elapsed.seconds > 30:
+        log.warn("Ran update in {}s".format(elapsed.seconds))
 
 
 def tick(sess, config):
@@ -48,7 +49,8 @@ def tick(sess, config):
     bot = Bot(sess, acct, now=start)
     bot.tick(period=start)
     elapsed = datetime.datetime.utcnow() - start
-    log.info("Ran tick in {}s".format(elapsed.seconds))
+    if elapsed.seconds > 30:
+        log.warn("Ran tick in {}s".format(elapsed.seconds))
 
 
 def strengths(sess, config):
