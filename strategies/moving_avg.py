@@ -79,8 +79,10 @@ class MovingAverage(object):
             return 0.5, current_price
 
         log.debug("No " + buy_str)
-        log.debug("  weak {}".format([p > self.WEAK for p in percent_strength[:3]]))
-        log.debug("  strong {}".format([p > self.STRONG for p in percent_strength[2:]]))
+        log.debug("  weak {}".format(
+                  [p > self.WEAK for p in percent_strength[:3]]))
+        log.debug("  strong {}".format(
+                  [p > self.STRONG for p in percent_strength[2:]]))
         return None
 
     def avg_by_hour(self, now, ticker):
