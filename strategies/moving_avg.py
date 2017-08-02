@@ -54,8 +54,8 @@ class MovingAverage(object):
         if current_price is None:
             log.debug("No price for {} @ {}".format(ticker, now))
             return None
-        return [hour_avgs[hour] / current_price
-                for hour in self.HOURS[1:]]
+        return current_price, [hour_avgs[hour] / current_price
+                               for hour in self.HOURS[1:]]
 
     def run_strategy(self, now, ticker):
         log.debug("Running moving averages strategy for '{}' at '{}'"
@@ -63,6 +63,7 @@ class MovingAverage(object):
         percent_strength = self.calculate_strengths(now, ticker)
         if percent_strength is None:
             return None
+        current_price, percent_strength = percent_strength
 
         # past 24 hours
         weak_buy = all_above(percent_strength[:3], self.WEAK)
