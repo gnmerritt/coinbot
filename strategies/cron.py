@@ -72,7 +72,10 @@ def strengths(sess, config):
     coins = list(strengths.keys())
     coins.sort()
     for coin in coins:
-        price, strength = strengths.get(coin)
+        try:
+            price, strength = strengths.get(coin)
+        except TypeError:
+            continue
         with_hours = zip(hours, strength)
         formatted = " ".join(
             ["{}%".format(round(100 * s, 2)).ljust(9)
