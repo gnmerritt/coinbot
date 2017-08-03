@@ -75,11 +75,10 @@ def strengths(sess, config):
         try:
             price, strength = strengths.get(coin)
         except TypeError:
-            continue
-        with_hours = zip(hours, strength)
+            strength = []
         formatted = " ".join(
             ["{}%".format(round(100 * s, 2)).ljust(9)
-             for h, s in with_hours])
+             for s in strength])
         msg.append("{}:  {}".format(coin.rjust(6), formatted))
 
     msg.append("```")
