@@ -27,7 +27,7 @@ class CcxtExchange:
 class Bittrex(CcxtExchange):
     COINS = [
         'BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH',
-        'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM'
+        'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM', 'BCC'
     ]
 
     def __init__(self, config):
@@ -43,7 +43,7 @@ class Bittrex(CcxtExchange):
 
 class Bitfinex(CcxtExchange):
     COINS = [
-        'BTC', 'ZEC', 'ETH', 'XRP', 'DSH', 'XMR', 'LTC', 'IOT'
+        'BTC', 'ZEC', 'ETH', 'XRP', 'DSH', 'XMR', 'LTC', 'IOT', 'BCH'
     ]
 
     def __init__(self, config):
