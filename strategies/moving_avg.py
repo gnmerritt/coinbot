@@ -41,11 +41,11 @@ class MovingAverage(object):
         self.sess = sess
         self.prices = {}
 
-    def calculate_strengths(self, now, ticker):
+    def calculate_strengths(self, now, ticker, allow_missing=False):
         if self.prices.get(ticker) is None:
             self.fetch_data(ticker, now)
 
-        hour_avgs = self.avg_by_hour(now, ticker)
+        hour_avgs = self.avg_by_hour(now, ticker, allow_missing)
         if hour_avgs is None:
             return None
         log.debug("Averages by hour: {}".format(hour_avgs))
@@ -85,7 +85,7 @@ class MovingAverage(object):
                   [p > self.STRONG for p in percent_strength[2:]]))
         return None
 
-    def avg_by_hour(self, now, ticker):
+    def avg_by_hour(self, now, ticker, allow_missing=False):
         # datetime cutoffs for each hour bucket e.g. 24hrs ago
         deltas = {h: now - timedelta(hours=h) for h in self.HOURS}
         # the most data we need to make a decision for this 'now'
@@ -108,7 +108,7 @@ class MovingAverage(object):
 
         # don't make a decision if we are missing more than 24hr of data
         needed_timestamp = time_cutoff + timedelta(hours=24)
-        if min_timestamp > needed_timestamp:
+        if min_timestamp > needed_timestamp and not allow_missing:
             return None
 
         return {k: sum(p) / len(p)

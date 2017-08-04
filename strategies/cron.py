@@ -58,7 +58,7 @@ def strengths(sess, config):
     acct = account(sess, config, verbose=False)
     now = datetime.datetime.utcnow()
     bot = Bot(sess, acct)
-    strengths = bot.calculate_strengths(now)
+    strengths = bot.calculate_strengths(now, approx=True)
 
     msg = ["Coin strengths (>100% = stronger than period, <100% = weaker)"]
     msg.append("```")
