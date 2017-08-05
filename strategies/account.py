@@ -43,7 +43,7 @@ class Account(object):
     def trade(self, coin, units, unit_price, period=None, fees=0.0025):
         self.update(coin, units, period)
         fee = fees * units * unit_price
-        self.fees += fee
+        self.fees += abs(fee)
         gross = units * unit_price
         if gross > 0:
             gross += fee

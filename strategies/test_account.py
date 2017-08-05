@@ -50,6 +50,7 @@ class TestAccount(unittest.TestCase):
         cost = account.trade('DCR', 10, 0.1)  # 10 @ 0.1 = 1 BTC
         self.assertEqual(cost, -1.0025)
         self.assertEqual(account.balance('DCR'), 10)
+        self.assertAlmostEqual(account.fees, 0.0025)
 
     def test_sell(self):
         account = Account()
@@ -57,6 +58,7 @@ class TestAccount(unittest.TestCase):
         proceeds = account.trade('DCR', -5, 0.1)
         self.assertEqual(proceeds, 0.49875)
         self.assertEqual(account.balance('DCR'), 5.0)
+        self.assertAlmostEqual(account.fees, 0.00125)
 
     def test_delete_empty(self):
         account = Account()
