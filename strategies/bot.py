@@ -52,11 +52,11 @@ class Bot(object):
     def tick_coin(self, period, coin):
         sold = self.check_sells(coin, period)
         if sold:
-            self.account.save()
+            self.account.save(self.sess)
             return
         bought = self.check_buys(coin, period)
         if bought:
-            self.account.save()
+            self.account.save(self.sess)
 
     def check_sells(self, coin, period):
         if self.account.balance(coin) <= 0:
