@@ -40,23 +40,27 @@ class Bot(object):
             for coin in self.account.all_coins}
 
     def tick(self, period):
+        action = False
         for coin in self.account.all_coins:
             if coin == 'BTC':
                 continue  # TODO
             try:
-                self.tick_coin(period, coin)
+                action = action or self.tick_coin(period, coin)
             except Exception as e:
                 log.error("Got error at {},{}: {}".format(coin, period, e))
                 raise e
+        return action
 
     def tick_coin(self, period, coin):
         sold = self.check_sells(coin, period)
         if sold:
             self.account.save(self.sess)
-            return
+            return True
         bought = self.check_buys(coin, period)
         if bought:
             self.account.save(self.sess)
+            return True
+        return False
 
     def check_sells(self, coin, period):
         if self.account.balance(coin) <= 0:

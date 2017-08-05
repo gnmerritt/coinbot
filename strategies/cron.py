@@ -47,10 +47,13 @@ def tick(sess, config):
     start = datetime.datetime.utcnow()
     acct = account(sess, config, verbose=False)
     bot = Bot(sess, acct, now=start)
-    bot.tick(period=start)
+    did_something = bot.tick(period=start)
     elapsed = datetime.datetime.utcnow() - start
     if elapsed.seconds > 30:
         log.warn("Ran tick in {}s".format(elapsed.seconds))
+    if did_something:
+        log.info("Strenghts at time of buy/sell:")
+        strengths(sess, config)
 
 
 def strengths(sess, config):
