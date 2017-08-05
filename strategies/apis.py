@@ -1,5 +1,8 @@
 import datetime
+import logging
 import ccxt
+
+log = logging.getLogger('default')
 
 
 def lower_key(my_dict):
@@ -9,7 +12,11 @@ def lower_key(my_dict):
 class CcxtExchange:
     def fetch_ticker(self, coin):
         symbol = self.make_symbol(coin)
-        json = lower_key(self.ccxt.fetch_ticker(symbol))
+        try:
+            json = lower_key(self.ccxt.fetch_ticker(symbol))
+        except Exception as e:
+            log.error(f"Exception fetching {coin} from {self.name}",
+                      exc_info=e.__traceback__)
         info = lower_key(json['info'])
         timestamp = datetime.datetime.utcfromtimestamp(json['timestamp'] / 1e3)
         values = {
