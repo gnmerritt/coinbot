@@ -80,6 +80,8 @@ class Backtester(object):
 
         for coin in self.coins:
             price = Ticker.current_ask(self.sess, coin, now=start)
+            if not price:
+                continue
             to_buy = with_fees / price
             cost = account.trade(coin, to_buy, price, start)
             account.update('BTC', cost, self.start_data)
