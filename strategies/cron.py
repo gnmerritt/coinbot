@@ -60,7 +60,8 @@ def strengths(sess, config):
     bot = Bot(sess, acct)
     strengths = bot.calculate_strengths(now, approx=True)
 
-    msg = ["Coin strengths (>100% = stronger than period, <100% = weaker)"]
+    msg = ["Coin strengths "
+           + "(>100% = currently weaker than period, <100% = stronger)"]
     msg.append("```")
     # header row
     hours = bot.moving_avg.HOURS[1:]  # TODO: make this less fiddly
