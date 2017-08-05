@@ -3,9 +3,21 @@ import logging
 
 from moving_avg import MovingAverage
 from stop_loss import run_strategy as stop_loss_strat
+from db import Ticker
 
 log = logging.getLogger('default')
 txns = logging.getLogger('txns')
+
+
+def account_value_btc(sess, account, now=None):
+    btc = account.balance('BTC')
+    for coin in account.coins:
+        if coin == 'BTC':
+            continue  # BTC is priced in USD, everything else in BTC
+        units = account.balance(coin)
+        unit_price = Ticker.current_ask(sess, coin, now)
+        btc += units * unit_price
+    return btc
 
 
 class Bot(object):
@@ -64,7 +76,14 @@ class Bot(object):
             return False
 
         fraction, price = action
-        to_spend = (self.account.balance('BTC') * 0.1) * fraction
+        acct_value = account_value_btc(self.sess, self.account, now=period)
+        to_spend = acct_value * 0.05 * fraction
+        with_fees = to_spend * 1.003
+        if with_fees > self.account.balance('BTC'):
+            to_spend = 0.997 * self.account.balance('BTC')
+        if to_spend < 0.001:
+            log.warn(f"Wanted to buy {coin}, but no BTC available")
+            return False
         units_to_buy = to_spend / price
         make_transaction(self.account, coin, units_to_buy, price, period)
         return True

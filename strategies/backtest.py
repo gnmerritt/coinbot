@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from bot import Bot
+from bot import Bot, account_value_btc
 from db import Ticker
 from account import Account
 
@@ -11,17 +11,6 @@ def fetch_data_timestamp(sess, oldest=True):
         sort = sort.desc()
     return sess.query(Ticker).order_by(sort).first() \
         .timestamp
-
-
-def account_value_btc(sess, account, now=None):
-    btc = account.balance('BTC')
-    for coin in account.coins:
-        if coin == 'BTC':
-            continue  # BTC is priced in USD, everything else in BTC
-        units = account.balance(coin)
-        unit_price = Ticker.current_ask(sess, coin, now)
-        btc += units * unit_price
-    return btc
 
 
 class Backtester(object):
