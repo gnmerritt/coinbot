@@ -17,6 +17,7 @@ class CcxtExchange:
         except Exception as e:
             log.error(f"Exception fetching {coin} from {self.name}",
                       exc_info=e.__traceback__)
+            return None
         info = lower_key(json['info'])
         timestamp = datetime.datetime.utcfromtimestamp(json['timestamp'] / 1e3)
         values = {

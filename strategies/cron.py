@@ -34,6 +34,8 @@ def update(sess, config):
         print(name)
         for coin in exch.COINS:
             data = exch.fetch_ticker(coin)
+            if data is None:
+                continue
             sess.add(Ticker(data))
 
     sess.commit()
