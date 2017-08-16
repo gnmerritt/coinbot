@@ -1,5 +1,6 @@
 import datetime
 import logging
+import time
 import ccxt
 
 log = logging.getLogger('default')
@@ -12,11 +13,8 @@ def lower_key(my_dict):
 class CcxtExchange:
     def fetch_ticker(self, coin):
         symbol = self.make_symbol(coin)
-        try:
-            json = lower_key(self.ccxt.fetch_ticker(symbol))
-        except Exception as e:
-            log.error(f"Exception fetching {coin} from {self.name}",
-                      exc_info=e.__traceback__)
+        json = self.fetch_json(symbol)
+        if json is None:
             return None
         info = lower_key(json['info'])
         timestamp = datetime.datetime.utcfromtimestamp(json['timestamp'] / 1e3)
@@ -30,6 +28,17 @@ class CcxtExchange:
             'volume': info['volume']
         }
         return values
+
+    def fetch_json(self, symbol, retries=3):
+        for attempt in range(0, retries):
+            try:
+                return lower_key(self.ccxt.fetch_ticker(symbol))
+            except Exception as e:
+                if attempt >= retries - 1:
+                    log.error(f"Exception fetching {symbol} from {self.name}",
+                              exc_info=e.__traceback__)
+                    return None
+                time.sleep(3)
 
 
 class Bittrex(CcxtExchange):
