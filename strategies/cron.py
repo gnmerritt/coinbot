@@ -56,6 +56,8 @@ def tick(sess, config):
     if did_something:
         log.info("Strenghts at time of buy/sell:")
         strengths(sess, config)
+        log.info("Account after buy/sell:")
+        account(sess, config)
 
 
 def strengths(sess, config):
