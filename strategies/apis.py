@@ -44,7 +44,7 @@ class CcxtExchange:
 class Bittrex(CcxtExchange):
     COINS = [
         'BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH',
-        'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM', 'BCC'
+        'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM', 'BCH'
     ]
 
     def __init__(self, config):
@@ -54,21 +54,5 @@ class Bittrex(CcxtExchange):
 
     def make_symbol(self, coin):
         if coin.find('BTC') == -1:
-            return 'BTC-' + coin
-        return 'USDT-BTC'
-
-
-class Bitfinex(CcxtExchange):
-    COINS = [
-        'BTC', 'ZEC', 'ETH', 'XRP', 'DSH', 'XMR', 'LTC', 'IOT', 'BCH'
-    ]
-
-    def __init__(self, config):
-        self.name = 'bitfinex'
-        keys = config['exchanges'][self.name]
-        self.ccxt = ccxt.bitfinex(keys)
-
-    def make_symbol(self, coin):
-        if coin.find('BTC') == -1:
-            return coin + 'BTC'
-        return 'BTCUSD'
+            return coin + '/BTC'
+        return 'BTC/USDT'

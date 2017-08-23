@@ -5,7 +5,7 @@ import logging
 
 from bot import Bot, account_value_btc
 from backtest import Backtester, fetch_data_timestamp
-from apis import Bitfinex, Bittrex
+from apis import Bittrex
 from db import create_db, new_session, Ticker
 from durable_account import DurableAccount
 from slack import setup_loggers
@@ -27,7 +27,6 @@ def update(sess, config):
     """"Pull data from the exchanges and store it in our database"""
     exchanges = {
         'Bittrex': Bittrex(parsed),
-        'Bitfinex': Bitfinex(parsed)
     }
     start = datetime.datetime.utcnow()
     for name, exch in exchanges.items():
