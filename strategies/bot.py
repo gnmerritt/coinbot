@@ -21,6 +21,8 @@ def account_value_btc(sess, account, now=None):
 
 
 class Bot(object):
+    MAX_COIN_HOLDING = 0.3  # don't hold too much of a single coin
+
     def __init__(self, sess, account, beginning=None, now=None):
         self.sess = sess
         self.account = account
@@ -81,12 +83,20 @@ class Bot(object):
 
         fraction, price = action
         acct_value = account_value_btc(self.sess, self.account, now=period)
+
+        coin_holding_btc = self.account.balance(coin) * price
+        coin_holding_percent = round(coin_holding_btc / acct_value, 2)
+        if coin_holding_percent > self.MAX_COIN_HOLDING:
+            txns.warn("Wanted to buy {}, but already holding {}%"
+                      .format(coin, 100 * coin_holding_percent))
+            return False
+
         to_spend = acct_value * 0.05 * fraction
         with_fees = to_spend * 1.003
         if with_fees > self.account.balance('BTC'):
             to_spend = 0.997 * self.account.balance('BTC')
         if to_spend < 0.001:
-            log.warn(f"Wanted to buy {coin}, but no BTC available")
+            txns.warn(f"Wanted to buy {coin}, but no BTC available")
             return False
         units_to_buy = to_spend / price
         make_transaction(self.account, coin, units_to_buy, price, period)

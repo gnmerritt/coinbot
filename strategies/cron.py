@@ -53,7 +53,7 @@ def tick(sess, config):
     if elapsed.seconds > 30:
         log.warn("Ran tick in {}s".format(elapsed.seconds))
     if did_something:
-        log.info("Strenghts at time of buy/sell:")
+        log.info("Strengths at time of buy/sell:")
         strengths(sess, config)
         log.info("Account after buy/sell:")
         account(sess, config)
