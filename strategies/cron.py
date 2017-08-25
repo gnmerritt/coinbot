@@ -141,7 +141,7 @@ if __name__ == "__main__":
     db = create_db(parsed['db'])
     sess = new_session(db)
 
-    if parsed.get('production') or True:
+    if parsed.get('production'):
         setup_loggers(parsed['slack'])
 
     for action in actions:
