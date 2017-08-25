@@ -16,17 +16,19 @@ log = logging.getLogger('cron')
 def account(sess, config, verbose=True):
     name = config['account']
     log.debug("Fetching account '{}' @ bittrex".format(name))
-    account = DurableAccount.from_db(sess, name, exchange='bittrex')
+    account = DurableAccount.from_db(sess, name,
+                                     exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
         value = account_value_btc(sess, account)
         log.info("{} with current value of {} BTC".format(account, value))
+        log.info("Balances from exchange: {}".format(account.remote_balance()))
     return account
 
 
 def update(sess, config):
     """"Pull data from the exchanges and store it in our database"""
     exchanges = {
-        'Bittrex': Bittrex(parsed),
+        'Bittrex': Bittrex(config),
     }
     start = datetime.datetime.utcnow()
     for name, exch in exchanges.items():
@@ -47,7 +49,7 @@ def tick(sess, config):
     """Run our strategies for the current time"""
     start = datetime.datetime.utcnow()
     acct = account(sess, config, verbose=False)
-    bot = Bot(sess, acct, now=start)
+    bot = Bot(sess, acct, now=start, live=True)
     did_something = bot.tick(period=start)
     elapsed = datetime.datetime.utcnow() - start
     if elapsed.seconds > 30:
@@ -99,6 +101,7 @@ def query(sess, config):
 
 
 def ipython(sess, config):
+    acct = account(sess, config)
     import ipdb
     ipdb.set_trace()
 
@@ -138,7 +141,7 @@ if __name__ == "__main__":
     db = create_db(parsed['db'])
     sess = new_session(db)
 
-    if parsed.get('production'):
+    if parsed.get('production') or True:
         setup_loggers(parsed['slack'])
 
     for action in actions:

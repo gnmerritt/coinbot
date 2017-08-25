@@ -23,12 +23,13 @@ def account_value_btc(sess, account, now=None):
 class Bot(object):
     MAX_COIN_HOLDING = 0.3  # don't hold too much of a single coin
 
-    def __init__(self, sess, account, beginning=None, now=None):
+    def __init__(self, sess, account, beginning=None, now=None, live=False):
         self.sess = sess
         self.account = account
         self.beginning = beginning
         self.now = now if now is not None else datetime.datetime.utcnow()
         self.moving_avg = MovingAverage(sess)
+        self.live = live
 
         if beginning is not None and now is not None:
             log.info("prefetching data from Bot: {} -> {}"
@@ -99,11 +100,11 @@ class Bot(object):
             txns.warn(f"Wanted to buy {coin}, but no BTC available")
             return False
         units_to_buy = to_spend / price
-        make_transaction(self.account, coin, units_to_buy, price, period)
+        make_transaction(self.account, coin, units_to_buy, price, period, self.live)
         return True
 
 
-def make_transaction(account, coin, units, price, period):
+def make_transaction(account, coin, units, price, period, live=False):
     verb = "Buy" if units > 0 else "Sell"
     log.debug("  Before {}: {}".format(verb, account))
     cost = account.trade(coin, units, price, period)
@@ -111,3 +112,7 @@ def make_transaction(account, coin, units, price, period):
               .format(str(period), verb, units, coin, price, cost))
     account.update('BTC', cost, period)
     log.warn("  After {}: {}".format(verb, account))
+    if live:
+        account.place_order(coin, units, price)
+        txns.warn("{} {} order placed: {}x{} @ {}"
+                  .format(account.exchange, verb, coin, units, price))

@@ -40,12 +40,28 @@ class CcxtExchange:
                     return None
                 time.sleep(3)
 
+    def balance(self, retries=3):
+        for attempt in range(0, retries):
+            try:
+                json = self.ccxt.fetchBalance()
+                balances = json['info']
+                non_zero = {info.get('Currency'): info.get('Balance')
+                            for info in balances}
+                return non_zero
+            except Exception as e:
+                if attempt >= retries - 1:
+                    log.error(f"Exception fetching {symbol} from {self.name}",
+                              exc_info=e.__traceback__)
+                    return None
+                time.sleep(3)
+
 
 class Bittrex(CcxtExchange):
     COINS = [
         'BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH',
         'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM', 'BCH'
     ]
+    BLACKLIST = ['1ST']
 
     def __init__(self, config):
         self.name = 'bittrex'
