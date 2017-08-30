@@ -47,10 +47,10 @@ class CcxtExchange:
                 balances = json['info']
                 non_zero = {info.get('Currency'): info.get('Balance')
                             for info in balances}
-                return non_zero
+                return {c: b for c, b in non_zero.items() if b > 0}
             except Exception as e:
                 if attempt >= retries - 1:
-                    log.error(f"Exception fetching {symbol} from {self.name}",
+                    log.error("Exception fetching account balance",
                               exc_info=e.__traceback__)
                     return None
                 time.sleep(3)
