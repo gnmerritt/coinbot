@@ -31,7 +31,6 @@ class DurableAccount(Account):
 
     def place_order(self, ticker, amount, price):
         symbol = self.ccxt.make_symbol(ticker)
-        return
         if amount > 0:
             self.ccxt.ccxt.createLimitBuyOrder(symbol, amount, price)
         else:
