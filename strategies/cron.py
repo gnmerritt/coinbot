@@ -84,7 +84,7 @@ def strengths(sess, config):
         try:
             price, strength = strengths.get(coin)
         except TypeError:
-            strength = []
+            continue
         formatted = " ".join(
             ["{}%".format(round(100 * s, 2)).ljust(9)
              for s in strength])
