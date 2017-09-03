@@ -68,27 +68,35 @@ def strengths(sess, config):
     bot = Bot(sess, acct)
     strengths = bot.calculate_strengths(now, approx=True)
 
-    msg = ["Coin strengths "
-           + "(>100% = currently weaker than period, <100% = stronger)"]
+    time_width = 6
+    msg = ["Coin price vs BTC "
+           + "(negative => currently stronger than period, positive => currently weaker). "
+           + "Ordered weakest to strongest."]
     msg.append("```")
     # header row
     hours = bot.moving_avg.HOURS[1:]  # TODO: make this less fiddly
     msg.append("{} {}".format(
         "coin  ".rjust(8),
-        " ".join(["{}hrs".format(h).ljust(9) for h in hours])))
+        " ".join(["{}hrs".format(h).ljust(time_width) for h in hours])))
     msg.append("")
 
-    coins = list(strengths.keys())
-    coins.sort()
+    saw_strength = False
+    coins = [c for c in strengths.keys() if strengths.get(c)]
+    # sort descending on coin strength (weakest coins first)
+    coins.sort(key=lambda c: strengths.get(c)[1][0], reverse=True)
     for coin in coins:
         try:
             price, strength = strengths.get(coin)
         except TypeError:
             continue
+        if strength[0] < 1 and not saw_strength:
+            saw_strength = True
+            msg.append('   --- Strong coins below ---')
+        normalized = [100 * (s - 1) for s in strength]
         formatted = " ".join(
-            ["{}%".format(round(100 * s, 2)).ljust(9)
-             for s in strength])
-        msg.append("{}:  {}".format(coin.rjust(6), formatted))
+            ["{}".format(round(s, 1)).rjust(time_width)
+             for s in normalized])
+        msg.append("{}:{}".format(coin.rjust(6), formatted))
 
     msg.append("```")
     log.info("\n".join(msg))
