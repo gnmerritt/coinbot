@@ -9,17 +9,6 @@ log = logging.getLogger('default')
 txns = logging.getLogger('txns')
 
 
-def account_value_btc(sess, account, now=None):
-    btc = account.balance('BTC')
-    for coin in account.coins:
-        if coin == 'BTC':
-            continue  # BTC is priced in USD, everything else in BTC
-        units = account.balance(coin)
-        unit_price = Ticker.current_ask(sess, coin, now)
-        btc += units * unit_price
-    return btc
-
-
 class Bot(object):
     MAX_COIN_HOLDING = 0.3  # don't hold too much of a single coin
 
@@ -83,7 +72,7 @@ class Bot(object):
             return False
 
         fraction, price = action
-        acct_value = account_value_btc(self.sess, self.account, now=period)
+        acct_value = self.account.value_btc(self.sess, now=period)
 
         coin_holding_btc = self.account.balance(coin) * price
         coin_holding_percent = round(coin_holding_btc / acct_value, 2)

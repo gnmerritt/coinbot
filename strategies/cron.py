@@ -3,7 +3,7 @@ import config
 import datetime
 import logging
 
-from bot import Bot, account_value_btc
+from bot import Bot
 from backtest import Backtester, fetch_data_timestamp
 from apis import Bittrex
 from db import create_db, new_session, Ticker
@@ -19,8 +19,12 @@ def account(sess, config, verbose=True):
     account = DurableAccount.from_db(sess, name,
                                      exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
-        value = account_value_btc(sess, account)
+        value = account.value_btc(sess)
         log.info("{} with current value of {} BTC".format(account, value))
+        for coin in account.coins:
+            btc_value = account.values_in_btc.get(coin, 0)
+            percent_value = round(100 * btc_value / value, 1)
+            log.info(f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%)")
         log.info("Balances from exchange: {}".format(account.remote_balance()))
     return account
 

@@ -8,6 +8,7 @@ class DurableAccount(Account):
         self.name = name
         self.exchange = exchange
         self.ccxt = ccxt
+        self.values_in_btc = {}
 
     def __str__(self):
         return "DurableAccount(name={}, exchange={}, balances={})" \
@@ -25,6 +26,19 @@ class DurableAccount(Account):
             else:
                 Balance.upsert(sess, balance, **attrs)
         sess.commit()
+
+    def value_btc(self, sess, now=None):
+        btc = self.balance('BTC')
+        self.values_in_btc['BTC'] = btc
+        for coin in self.coins:
+            if coin == 'BTC':
+                continue  # BTC is priced in USD, everything else in BTC
+            units = self.balance(coin)
+            unit_price = Ticker.current_ask(sess, coin, now)
+            value = units * unit_price
+            self.values_in_btc[coin] = value
+            btc += value
+        return btc
 
     def remote_balance(self):
         return self.ccxt.balance()
