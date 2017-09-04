@@ -10,7 +10,7 @@ txns = logging.getLogger('txns')
 
 
 class Bot(object):
-    MAX_COIN_HOLDING = 0.3  # don't hold too much of a single coin
+    MAX_COIN_HOLDING = 0.15  # don't hold too much of a single coin
 
     def __init__(self, sess, account, beginning=None, now=None, live=False):
         self.sess = sess
