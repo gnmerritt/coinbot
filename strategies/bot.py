@@ -37,7 +37,8 @@ class Bot(object):
             if coin == 'BTC':
                 continue  # TODO
             try:
-                action = action or self.tick_coin(period, coin)
+                this_coin_action = self.tick_coin(period, coin)
+                action = action or this_coin_action
             except Exception as e:
                 log.error("Got error at {},{}: {}".format(coin, period, e))
                 raise e
@@ -63,7 +64,7 @@ class Bot(object):
 
         fraction, price = action
         units_to_sell = fraction * self.account.balance(coin)
-        make_transaction(self.account, coin, units_to_sell, price, period)
+        make_transaction(self.account, coin, units_to_sell, price, period, self.live)
         return True
 
     def check_buys(self, coin, period):
@@ -93,15 +94,14 @@ class Bot(object):
         return True
 
 
-def make_transaction(account, coin, units, price, period, live=False):
+def make_transaction(account, coin, units, price, period, live):
     verb = "Buy" if units > 0 else "Sell"
     log.debug("  Before {}: {}".format(verb, account))
     cost = account.trade(coin, units, price, period)
     txns.warn("{}: {} {} of {} @ {} BTC ({})"
               .format(str(period), verb, units, coin, price, cost))
+    if live:
+        order = account.place_order(coin, units, price)
+        txns.warn(f"order placed at {account.exchange}: {order}")
     account.update('BTC', cost, period)
     log.warn("  After {}: {}".format(verb, account))
-    if live:
-        account.place_order(coin, units, price)
-        txns.warn("{} {} order placed: {}x{} @ {}"
-                  .format(account.exchange, verb, coin, units, price))
