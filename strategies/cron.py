@@ -20,6 +20,7 @@ def account(sess, config, verbose=True):
     account = DurableAccount.from_db(sess, name,
                                      exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
+        account.respect_remote(sess)
         value = account.value_btc(sess)
         log.info("{} with current value of {} BTC".format(account, value))
         for coin in account.coins:

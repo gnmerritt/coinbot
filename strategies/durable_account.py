@@ -1,5 +1,9 @@
+import datetime
 from account import Account
 from db import Balance, Ticker
+
+
+BTC_DIFF_THRESH = 0.001  # one thousandth, about $4
 
 
 class DurableAccount(Account):
@@ -42,6 +46,37 @@ class DurableAccount(Account):
 
     def remote_balance(self):
         return self.ccxt.balance()
+
+    def respect_remote(self, sess):
+        changed = 0
+
+        for coin, remote_balance in self.remote_balance().items():
+            local_balance = self.balance(coin)
+            if local_balance == remote_balance:
+                continue
+
+            allowed_diff = self.get_allowed_diff(sess, coin)
+            actual_diff = remote_balance - local_balance
+            if abs(actual_diff) < allowed_diff:
+                perc = round(100 * actual_diff / local_balance, 1)
+                log.warn(f"Updating local {coin} to match remote ({actual_diff} / {perc}%)")
+                self.balances[coin] = remote_balance
+                changed += 1
+            else:
+                log.debug(f"{coin} difference too big to auto-respect: {actual_diff} > {allowed_diff}")
+
+        if changed > 0:
+            self.save(sess)
+            log.warn(f" Updated {changed} coins to match remote balances")
+
+    def get_allowed_diff(self, sess, coin):
+        if coin == 'BTC':
+            return BTC_DIFF_THRESH
+        now = datetime.datetime.utcnow()
+        current = Ticker.current_ask(sess, coin, now)
+        if current is None:
+            current = 1
+        return BTC_DIFF_THRESH / current  # in terms of the coin
 
     def place_order(self, ticker, amount, price):
         symbol = self.ccxt.make_symbol(ticker)
