@@ -50,8 +50,11 @@ class DurableAccount(Account):
 
     def respect_remote(self, sess):
         changed = 0
+        remote_balances = self.remote_balance()
+        coins = set(self.balances.keys()).union(remote_balances.keys())
 
-        for coin, remote_balance in self.remote_balance().items():
+        for coin in coins:
+            remote_balance = remote_balances.get(coin, 0)
             local_balance = self.balance(coin)
             if local_balance == remote_balance:
                 continue
@@ -64,7 +67,7 @@ class DurableAccount(Account):
                 self.balances[coin] = remote_balance
                 changed += 1
             else:
-                log.debug(f"{coin} difference too big to auto-respect: {actual_diff} > {allowed_diff}")
+                log.debug(f"{coin} difference too big to auto-correct: {actual_diff} > {allowed_diff}")
 
         if changed > 0:
             self.save(sess)
