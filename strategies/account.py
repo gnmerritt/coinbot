@@ -41,6 +41,7 @@ class Account(object):
         return self.last_txns.get(coin)
 
     def trade(self, coin, units, unit_price, period=None, fees=0.0025):
+        units = float(units)  # sometimes we get passed Decimals
         self.update(coin, units, period)
         fee = fees * units * unit_price
         self.fees += abs(fee)

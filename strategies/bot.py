@@ -4,6 +4,7 @@ import logging
 from moving_avg import MovingAverage
 from stop_loss import run_strategy as stop_loss_strat
 from db import Ticker
+from util import crypto_truncate
 
 log = logging.getLogger('default')
 txns = logging.getLogger('txns')
@@ -75,7 +76,7 @@ class Bot(object):
             return False
 
         fraction, price = action
-        units_to_sell = fraction * self.account.balance(coin)
+        units_to_sell = crypto_truncate(fraction * self.account.balance(coin))
         make_transaction(self.account, coin, units_to_sell, price, period, self.live)
         return True
 
@@ -101,7 +102,7 @@ class Bot(object):
         if to_spend < 0.001:
             txns.warn(f"Wanted to buy {coin}, but no BTC available")
             return False
-        units_to_buy = to_spend / price
+        units_to_buy = crypto_truncate(to_spend / price)
         make_transaction(self.account, coin, units_to_buy, price, period, self.live)
         return True
 

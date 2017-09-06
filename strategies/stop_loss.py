@@ -10,7 +10,7 @@ MIN_HOLD_TIME = timedelta(hours=24)
 
 
 def run_strategy(sess, now, ticker, account, debug=False):
-    if account.balance(ticker) == 0:
+    if account.balance(ticker) <= 0.00_000_001:
         return None
     open_time = account.opened(ticker)
     first_sell = open_time + MIN_HOLD_TIME
