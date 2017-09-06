@@ -115,6 +115,6 @@ def make_transaction(account, coin, units, price, period, live):
               .format(str(period), verb, units, coin, price, cost))
     if live:
         order = account.place_order(coin, units, price)
-        txns.warn(f"order placed at {account.exchange}: {order}")
+        txns.warn(f"@channel order placed at {account.exchange}: {order}")
     account.update('BTC', cost, period)
     log.warn("  After {}: {}".format(verb, account))
