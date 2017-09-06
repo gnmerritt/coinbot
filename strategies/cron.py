@@ -25,11 +25,11 @@ def account(sess, config, verbose=True):
         for coin in account.coins:
             btc_value = account.values_in_btc.get(coin, 0)
             percent_value = round(100 * btc_value / value, 1)
-            opened = account.opened(coin).date().isoformat()
-            change, current = calc_change_percent(
-                sess, datetime.datetime.utcnow(), coin, account)
+            opened = account.opened(coin)
+            now = datetime.datetime.utcnow()
+            change, current = calc_change_percent(sess, coin, opened, now)
             log.info(f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%). "
-                     + f"Position opened on {opened}, moved {change}%.")
+                     + f"Position opened on {opened.date().isoformat()}, moved {change}%.")
         log.info("Balances from exchange: {}".format(account.remote_balance()))
     return account
 
