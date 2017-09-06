@@ -5,6 +5,7 @@ import logging
 
 from bot import Bot
 from backtest import Backtester, fetch_data_timestamp
+from stop_loss import calc_change_percent
 from apis import Bittrex
 from db import create_db, new_session, Ticker
 from durable_account import DurableAccount
@@ -24,7 +25,11 @@ def account(sess, config, verbose=True):
         for coin in account.coins:
             btc_value = account.values_in_btc.get(coin, 0)
             percent_value = round(100 * btc_value / value, 1)
-            log.info(f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%)")
+            opened = account.opened(coin).date().isoformat()
+            change, current = calc_change_percent(
+                sess, datetime.datetime.utcnow(), coin, account)
+            log.info(f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%). "
+                     + f"Position opened on {opened}, moved {change}%.")
         log.info("Balances from exchange: {}".format(account.remote_balance()))
     return account
 

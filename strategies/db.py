@@ -41,7 +41,8 @@ class Ticker(Base):
     def peak(sess, coin, start_time=None, now=None):
         query = Ticker.at_time(
             sess.query(func.max(Ticker.last)).filter(Ticker.coin == coin),
-            now)
+            now
+        )
         if start_time:
             query = query.filter(Ticker.timestamp > start_time)
         res = query.first()
