@@ -1,0 +1,17 @@
+
+db: 'sqlite:////Users/nathan/sources/coinbot/coinbot.db'
+
+exchanges:
+  bittrex:
+    apiKey: your-api-key-here
+    secret: your-secret-here
+
+slack:
+  key: xoxp-your-slack-key-here
+  channel: coinbot-dev
+  username: dev
+  emojis:
+    default: ':dolphin:'
+    cron: 'dolphin'
+
+account: devtesting
