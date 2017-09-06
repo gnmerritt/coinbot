@@ -5,7 +5,7 @@ from db import Ticker
 
 log = logging.getLogger('default')
 
-DROP_PERCENT = 0.04
+DROP_PERCENT = 4
 MIN_HOLD_TIME = timedelta(hours=24)
 
 
