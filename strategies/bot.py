@@ -24,6 +24,7 @@ def account_value_btc(sess, account, now=None):
 
 class Bot(object):
     MAX_COIN_HOLDING = 0.15  # don't hold too much of a single coin
+    BET_SIZE = 0.05
 
     def __init__(self, sess, account, beginning=None, now=None, live=False):
         self.sess = sess
@@ -95,7 +96,7 @@ class Bot(object):
                       .format(coin, 100 * coin_holding_percent))
             return False
 
-        to_spend = acct_value * 0.05 * fraction
+        to_spend = acct_value * self.BET_SIZE * fraction
         with_fees = to_spend * 1.003
         if with_fees > self.account.balance('BTC'):
             to_spend = 0.997 * self.account.balance('BTC')
