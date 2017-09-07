@@ -8,6 +8,7 @@ exchanges:
 
 slack:
   key: xoxp-your-slack-key-here
+  token: your-slack-api-token-here
   channel: coinbot-dev
   username: dev
   emojis:

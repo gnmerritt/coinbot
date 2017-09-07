@@ -1,8 +1,8 @@
 import sys
-import config
 import datetime
 import logging
 
+import config
 from bot import Bot
 from backtest import Backtester, fetch_data_timestamp
 from stop_loss import calc_change_percent
@@ -113,12 +113,6 @@ def strengths(sess, config):
     log.info("\n".join(msg))
 
 
-def query(sess, config):
-    entries = sess.query(Ticker).all()
-    print("got {} entries".format(len(entries)))
-    print(entries)
-
-
 def ipython(sess, config):
     acct = account(sess, config)
     import ipdb
@@ -150,18 +144,12 @@ ACTIONS = {
     'update': update,
     'ipython': ipython,
     'tick': tick,
-    'query': query,
     'strengths': strengths,
     'pull': pull,
 }
 
-if __name__ == "__main__":
-    config_file = sys.argv[1]
-    actions = sys.argv[2:]
-    if not actions:
-        actions = ['update']
 
-    parsed = config.read_config(config_file)
+def main(parsed, actions):
     print("got config: {}".format(parsed))
 
     db = create_db(parsed['db'])
@@ -176,3 +164,12 @@ if __name__ == "__main__":
             raise ValueError("valid actions are {}".format(list(ACTIONS.keys())))
         print("--Running '{}'--".format(action))
         func(sess, parsed)
+
+
+if __name__ == "__main__":
+    config_file = sys.argv[1]
+    actions = sys.argv[2:]
+    if not actions:
+        actions = ['update']
+    parsed = config.read_config(config_file)
+    main(parsed, actions)
