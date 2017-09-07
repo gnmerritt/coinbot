@@ -26,4 +26,4 @@ def handle_slack():
 if __name__ == "__main__":
     config_file = sys.argv[1]
     parsed = config.read_config(config_file)
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=5000)
