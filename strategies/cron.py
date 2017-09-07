@@ -155,9 +155,6 @@ def main(parsed, actions):
     db = create_db(parsed['db'])
     sess = new_session(db)
 
-    if 'backtest' not in actions:
-        setup_loggers(parsed['slack'])
-
     for action in actions:
         func = ACTIONS.get(action)
         if func is None:
@@ -172,4 +169,8 @@ if __name__ == "__main__":
     if not actions:
         actions = ['update']
     parsed = config.read_config(config_file)
+
+    if 'backtest' not in actions:
+        setup_loggers(parsed['slack'])
+
     main(parsed, actions)

@@ -3,6 +3,7 @@ from flask import Flask, jsonify, request
 app = Flask(__name__)
 
 import config
+from slack import setup_loggers
 from cron import main
 
 ALLOWED_ACTIONS = set([
@@ -26,4 +27,5 @@ def handle_slack():
 if __name__ == "__main__":
     config_file = sys.argv[1]
     parsed = config.read_config(config_file)
+    setup_loggers(parsed['slack'])
     app.run(host='0.0.0.0', port=5000)
