@@ -10,6 +10,7 @@ from apis import Bittrex
 from db import create_db, new_session, Ticker
 from durable_account import DurableAccount
 from slack import setup_loggers
+from util import run
 
 log = logging.getLogger('cron')
 
@@ -136,6 +137,12 @@ def backtest(sess, config):
     tester.run_backtest()
 
 
+def pull(sess, config):
+    log.info("Running `git pull`")
+    output = run(['git', 'pull'])
+    log.info("```{}```".format("\n".join(output)))
+
+
 ACTIONS = {
     'account': account,
     'backtest': backtest,
@@ -145,6 +152,7 @@ ACTIONS = {
     'tick': tick,
     'query': query,
     'strengths': strengths,
+    'pull': pull,
 }
 
 if __name__ == "__main__":
