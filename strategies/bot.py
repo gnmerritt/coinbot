@@ -116,7 +116,7 @@ def make_transaction(account, coin, units, price, period, live):
             order = account.place_order(coin, units, price)
             txns.warn(f"@channel order placed at {account.exchange}: {order}")
         except Exception as e:
-            txns.error(f"Error ordering {coin}:", e)
+            txns.error(f"Error ordering {coin}: {e}")
             return
     cost = account.trade(coin, units, price, period)
     txns.warn("{}: {} {} of {} @ {} BTC ({})"
