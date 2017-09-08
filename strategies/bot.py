@@ -111,11 +111,15 @@ class Bot(object):
 def make_transaction(account, coin, units, price, period, live):
     verb = "Buy" if units > 0 else "Sell"
     log.debug("  Before {}: {}".format(verb, account))
+    if live:
+        try:
+            order = account.place_order(coin, units, price)
+            txns.warn(f"@channel order placed at {account.exchange}: {order}")
+        except Exception as e:
+            txns.error(f"Error ordering {coin}:", e)
+            return
     cost = account.trade(coin, units, price, period)
     txns.warn("{}: {} {} of {} @ {} BTC ({})"
               .format(str(period), verb, units, coin, price, cost))
-    if live:
-        order = account.place_order(coin, units, price)
-        txns.warn(f"@channel order placed at {account.exchange}: {order}")
     account.update('BTC', cost, period)
     log.warn("  After {}: {}".format(verb, account))
