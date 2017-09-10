@@ -62,7 +62,7 @@ class DurableAccount(Account):
             allowed_diff = self.get_allowed_diff(sess, coin)
             actual_diff = remote_balance - local_balance
             if abs(actual_diff) < allowed_diff:
-                perc = round(100 * actual_diff / local_balance, 1)
+                perc = 100 if local_balance == 0.0 else round(100 * actual_diff / local_balance, 1)
                 log.warn(f"Updating local {coin} to match remote ({actual_diff} / {perc}%)")
                 self.balances[coin] = remote_balance
                 changed += 1

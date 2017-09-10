@@ -114,7 +114,7 @@ def strengths(sess, config):
 
 
 def ipython(sess, config):
-    acct = account(sess, config)
+    acct = account(sess, config, verbose=False)
     import ipdb
     ipdb.set_trace()
 
