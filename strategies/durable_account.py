@@ -60,6 +60,10 @@ class DurableAccount(Account):
                 continue
 
             allowed_diff = self.get_allowed_diff(sess, coin)
+            if local_balance == 0.0 and remote_balance < allowed_diff:
+                log.debug(f"Not enough of {}, skipping")
+                continue
+
             actual_diff = remote_balance - local_balance
             if abs(actual_diff) < allowed_diff:
                 perc = 100 if local_balance == 0.0 else round(100 * actual_diff / local_balance, 1)
