@@ -27,9 +27,9 @@ class Backtester(object):
         self.buy_and_hold()
 
     def log_value(self, account, period):
-        value = account_value_btc(self.sess, account)
-        print("\nAccount value at {}: {} BTC\n"
-              .format(period, round(value, 3)))
+        value = round(account_value_btc(self.sess, account), 3)
+        print("\nAccount value at {}: {} BTC".format(period, value))
+        return value
 
     def run_strategy(self):
         print("Backtesting for currencies: {}".format(self.coins))
@@ -40,22 +40,30 @@ class Backtester(object):
         account = Account(self.balances, period, coins=self.coins)
         start_value = account_value_btc(self.sess, account)
         bot = Bot(self.sess, account, beginning=self.start_data, now=self.now)
+        low = high = start_value
 
         i = 0
         while period < self.now - self.step:
             period += self.step
             bot.tick(period)
             i += 1
-            if i % (2 * 6 * 24) == 0:  # every 2 days
-                self.log_value(account, period)
+            if i % (0.5 * 6 * 24) == 0:  # twice per day
+                value = self.log_value(account, period)
+                low = min(low, value)
+                high = max(high, value)
 
         finish_value = account_value_btc(self.sess, account)
+        low = min(low, finish_value)
+        high = max(high, finish_value)
         percent_return = 100 * (finish_value - start_value) / finish_value
 
-        print("\n\nTransactions:\n{}\n\n".format(account.txns))
-        print("\nBalance after running backest ({}): {} BTC\n"
+        print("Ran backtest between {}->{} at {} intervals"
+              .format(self.start_data, self.now, self.step))
+        print("Balance after running backest ({}): {} BTC\n"
               .format(self.now, finish_value))
         print("Paid {} BTC in fees".format(account.fees))
+        print("Transactions: {}".format(len(account.txns)))
+        print("High: {}, Low: {}".format(high, low))
         print("Return over period: {}%".format(round(percent_return, 2)))
 
         return percent_return
