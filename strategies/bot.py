@@ -79,6 +79,9 @@ class Bot(object):
         fraction, price = action
         units_to_sell = crypto_truncate(fraction * self.account.balance(coin))
         make_transaction(self.account, coin, units_to_sell, price, period, self.live)
+        if fraction == -1:
+            # hack: make sure to zero out balances after selling
+            self.account.update(coin, -self.account.balance(coin), period)
         return True
 
     def check_buys(self, coin, period):
