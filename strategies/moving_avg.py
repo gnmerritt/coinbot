@@ -50,10 +50,12 @@ class MovingAverage(object):
             return None
         log.debug("Averages by hour: {}".format(hour_avgs))
 
-        current_price = hour_avgs.get(1)
-        if current_price is None:
+        current_price = Ticker.current_ask(self.sess, ticker, now)
+
+        if current_price is None or hour_avgs.get(1) is None:
             log.debug("No price for {} @ {}".format(ticker, now))
             return None
+
         return current_price, [hour_avgs[hour] / current_price
                                for hour in self.HOURS[1:]]
 
