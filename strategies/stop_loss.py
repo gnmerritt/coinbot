@@ -29,7 +29,7 @@ def calc_change_percent(sess, ticker, start_time, now):
     peak = Ticker.peak(sess, ticker, start_time=start_time, now=now)
     current = Ticker.current_ask(sess, ticker, now)
     if current is None or peak is None:
-        log.error(f"Could not get current/peak for {ticker} at s={start_time} n={now}: c={current}, p={peak}")
+        log.debug(f"Could not get current/peak for {ticker} at s={start_time} n={now}: c={current}, p={peak}")
         return 0, current
 
     return round(100 * (current - peak) / peak, 2), current
