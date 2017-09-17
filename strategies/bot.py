@@ -33,6 +33,8 @@ class Bot(object):
         self.now = now if now is not None else datetime.datetime.utcnow()
         self.moving_avg = MovingAverage(sess)
         self.live = live
+        self.out_of_btc = 0
+        self.hit_coin_limit = 0
 
         if beginning is not None and now is not None:
             log.info("prefetching data from Bot: {} -> {}"
@@ -97,6 +99,7 @@ class Bot(object):
         if coin_holding_percent > self.MAX_COIN_HOLDING:
             txns.warn("Wanted to buy {}, but already holding {}%"
                       .format(coin, 100 * coin_holding_percent))
+            self.hit_coin_limit += 1
             return False
 
         to_spend = acct_value * self.BET_SIZE * fraction
@@ -105,6 +108,7 @@ class Bot(object):
             to_spend = 0.997 * self.account.balance('BTC')
         if to_spend < 0.001:
             txns.warn(f"Wanted to buy {coin}, but no BTC available")
+            self.out_of_btc += 1
             return False
         units_to_buy = crypto_truncate(to_spend / price)
         make_transaction(self.account, coin, units_to_buy, price, period, self.live)

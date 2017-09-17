@@ -63,6 +63,8 @@ class Backtester(object):
               .format(self.now, finish_value))
         print("Paid {} BTC in fees".format(account.fees))
         print("Transactions: {}".format(len(account.txns)))
+        print("Missed buys: out of BTC: {}, hit coin limit: {}"
+              .format(bot.out_of_btc, bot.hit_coin_limit))
         print("High: {}, Low: {}".format(high, low))
         print("Return over period: {}%".format(round(percent_return, 2)))
 
