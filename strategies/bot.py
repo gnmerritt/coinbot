@@ -24,7 +24,7 @@ def account_value_btc(sess, account, now=None):
 
 class Bot(object):
     MAX_COIN_HOLDING = 0.15  # don't hold too much of a single coin
-    BET_SIZE = 0.05
+    BET_SIZE = 0.025
 
     def __init__(self, sess, account, beginning=None, now=None, live=False):
         self.sess = sess
