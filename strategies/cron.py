@@ -22,7 +22,7 @@ def account(sess, config, verbose=True):
                                      exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
         account.respect_remote(sess)
-        value = account.value_btc(sess)
+        value = round(account.value_btc(sess), 8)
         log.info("{}\n  with current value of *{} BTC*".format(account, value))
         for coin in account.coins:
             print_coin(sess, account, value, coin)
