@@ -5,7 +5,7 @@ import logging
 import config
 from bot import Bot
 from backtest import Backtester, fetch_data_timestamp
-from stop_loss import calc_change_percent
+from stop_loss import calc_change_percent, MIN_HOLD_TIME
 from apis import Bittrex
 from db import create_db, new_session, Ticker
 from durable_account import DurableAccount
@@ -25,15 +25,25 @@ def account(sess, config, verbose=True):
         value = account.value_btc(sess)
         log.info("{} with current value of {} BTC".format(account, value))
         for coin in account.coins:
-            btc_value = account.values_in_btc.get(coin, 0)
-            percent_value = round(100 * btc_value / value, 1)
-            opened = account.opened(coin)
-            now = datetime.datetime.utcnow()
-            change, current = calc_change_percent(sess, coin, opened, now)
-            log.info(f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%). "
-                     + f"Position opened on {opened.date().isoformat()}, moved {change}%.")
+            print_coin(sess, account, value, coin)
         log.info("Balances from exchange: {}".format(account.remote_balance()))
     return account
+
+
+def print_coin(sess, account, value, coin):
+    btc_value = account.values_in_btc.get(coin, 0)
+    percent_value = round(100 * btc_value / value, 1)
+    opened = account.opened(coin)
+    lockup = opened + MIN_HOLD_TIME
+    now = datetime.datetime.utcnow()
+    hours_open = round((now - opened).total_seconds() / 3600, 1)
+    change, current = calc_change_percent(sess, coin, opened, now)
+    info = f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%). "
+    info += f"Opened {opened.date().isoformat()} ({hours_open} hrs), moved {change}%"
+    if now > lockup:
+        lockup_change, _ = calc_change_percent(sess, coin, lockup, now)
+        info += f" ({lockup_change}% post lockup)"
+    log.info(info)
 
 
 def update(sess, config):
