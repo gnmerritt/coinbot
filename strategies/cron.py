@@ -23,7 +23,7 @@ def account(sess, config, verbose=True):
     if verbose:
         account.respect_remote(sess)
         value = account.value_btc(sess)
-        log.info("{} with current value of {} BTC".format(account, value))
+        log.info("{}\n  with current value of *{} BTC*".format(account, value))
         for coin in account.coins:
             print_coin(sess, account, value, coin)
         log.info("Balances from exchange: {}".format(account.remote_balance()))
