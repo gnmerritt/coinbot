@@ -38,7 +38,7 @@ def print_coin(sess, account, value, coin):
     now = datetime.datetime.utcnow()
     hours_open = round((now - opened).total_seconds() / 3600, 1)
     change, current = calc_change_percent(sess, coin, opened, now)
-    info = f"{coin.rjust(8)}: {btc_value} BTC ({percent_value}%). "
+    info = f"{coin.rjust(8)}: {round(btc_value, 3)} BTC ({percent_value}%). "
     info += f"Opened {opened.date().isoformat()} ({hours_open} hrs), moved {change}%"
     if now > lockup:
         lockup_change, _ = calc_change_percent(sess, coin, lockup, now)
