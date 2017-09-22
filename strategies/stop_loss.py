@@ -25,11 +25,14 @@ def run_strategy(sess, now, ticker, account, debug=False):
         return -1, current
 
 
-def calc_change_percent(sess, ticker, start_time, now):
-    peak = Ticker.peak(sess, ticker, start_time=start_time, now=now)
+def calc_change_percent(sess, ticker, start_time, now, peak=True):
+    if peak:
+        start = Ticker.peak(sess, ticker, start_time=start_time, now=now)
+    else:
+        start = Ticker.current_ask(sess, ticker, start_time)
     current = Ticker.current_ask(sess, ticker, now)
-    if current is None or peak is None:
-        log.debug(f"Could not get current/peak for {ticker} at s={start_time} n={now}: c={current}, p={peak}")
+    if current is None or start is None:
+        log.debug(f"Could not get current/start for {ticker} at s={start_time} n={now}: c={current}, p={start}")
         return 0, current
 
-    return round(100 * (current - peak) / peak, 2), current
+    return round(100 * (current - start) / start, 2), current
