@@ -80,8 +80,9 @@ class Bot(object):
 
         fraction, price = action
         units_to_sell = crypto_truncate(fraction * self.account.balance(coin))
-        make_transaction(self.account, coin, units_to_sell, price, period, self.live)
-        if fraction == -1:
+        sell_worked = make_transaction(self.account, coin, units_to_sell, price,
+                                       period, self.live)
+        if fraction == -1 and sell_worked:
             # hack: make sure to zero out balances after selling
             self.account.update(coin, -self.account.balance(coin), period)
         return True
@@ -124,9 +125,10 @@ def make_transaction(account, coin, units, price, period, live):
             txns.warn(f"@channel order placed at {account.exchange}: {order}")
         except Exception as e:
             txns.error(f"Error ordering {coin}: {e}")
-            return
+            return False
     cost = account.trade(coin, units, price, period)
     txns.warn("{}: {} {} of {} @ {} BTC ({})"
               .format(str(period), verb, units, coin, price, cost))
     account.update('BTC', cost, period)
     log.warn("  After {}: {}".format(verb, account))
+    return True
