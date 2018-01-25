@@ -84,7 +84,7 @@ class Bot(object):
                                        period, self.live)
         if fraction == -1 and sell_worked:
             # hack: make sure to zero out balances after selling
-            self.account.update(coin, -self.account.balance(coin), period)
+            self.account.balances[coin] = 0
         return True
 
     def check_buys(self, coin, period):
