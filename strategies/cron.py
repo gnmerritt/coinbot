@@ -1,6 +1,7 @@
 import sys
 import datetime
 import logging
+import random
 
 import config
 from bot import Bot
@@ -138,8 +139,9 @@ def data(sess, config):
 
 
 def backtest(sess, config):
+    bt = config['backtesting']
     tester = Backtester(sess)
-    tester.run_backtest()
+    tester.run_backtest(bt['trials'], bt['trial_days'], bt['threads'])
 
 
 def pull(sess, config):
@@ -163,6 +165,8 @@ ACTIONS = {
 def main(parsed, actions):
     db = create_db(parsed['db'])
     sess = new_session(db)
+
+    random.seed(parsed['seed'])
 
     for action in actions:
         func = ACTIONS.get(action)

@@ -16,3 +16,10 @@ slack:
     cron: 'dolphin'
 
 account: devtesting
+
+seed: 42
+
+backtesting:
+  trials: 3
+  trial_days: 10
+  threads: 1
