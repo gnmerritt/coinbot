@@ -14,3 +14,4 @@ sqlalchemy
 tox
 pandas
 ipdb
+tqdm

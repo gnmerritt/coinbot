@@ -3,12 +3,17 @@ import random
 import statistics as s
 from timeit import default_timer as timer
 from multiprocessing import Pool
+from tqdm import tqdm
+import logging
 
 from bot import Bot, account_value_btc
 from db import Ticker, create_db, new_session
 from account import Account
 
 SECS_DAY = 60 * 60 * 24
+
+log = logging.getLogger('backtest')
+log.setLevel(logging.INFO)
 
 
 def fetch_data_timestamp(sess, oldest=True):
@@ -35,16 +40,18 @@ class BacktestResult(object):
         self.percent_return = 100 * (finish_val - start_val) / finish_val
 
     def print_results(self):
-        print("Ran backtest between {}->{} at {} intervals"
-              .format(self.start, self.end, self.step))
-        print("Balance after running backest {} BTC\n".format(self.finish_val))
-        print("Paid {} BTC in fees".format(round(self.fees, 8)))
-        print("Transactions: {}".format(len(self.txns)))
-        print("Missed buys: out of BTC: {}, hit coin limit: {}"
-              .format(self.out_of_btc, self.hit_coin_limit))
+        log.debug("Ran backtest between {}->{} at {} intervals"
+                  .format(self.start, self.end, self.step))
+        log.debug("Balance after running backest {} BTC\n"
+                  .format(self.finish_val))
+        log.debug("Paid {} BTC in fees".format(round(self.fees, 8)))
+        log.debug("Transactions: {}".format(len(self.txns)))
+        log.debug("Missed buys: out of BTC: {}, hit coin limit: {}"
+                  .format(self.out_of_btc, self.hit_coin_limit))
         if self.high is not None or self.low is not None:
-            print("High: {}, Low: {}".format(self.high, self.low))
-        print("Return over period: {}%".format(round(self.percent_return, 2)))
+            log.debug("High: {}, Low: {}".format(self.high, self.low))
+        log.debug("Return over period: {}%"
+                  .format(round(self.percent_return, 2)))
 
 
 class Backtester(object):
@@ -56,9 +63,15 @@ class Backtester(object):
         self.start_data = fetch_data_timestamp(sess, oldest=True)
         self.end_data = fetch_data_timestamp(sess, oldest=False)
 
+        # quiet other logs down to avoid spam
+        default = logging.getLogger('default')
+        default.setLevel(logging.ERROR)
+        txns = logging.getLogger('txns')
+        txns.setLevel(logging.ERROR)
+
     def run_backtest(self, num_trials, trial_days, threads=1):
-        print("Finding intervals between {}->{}"
-              .format(self.start_data, self.end_data))
+        log.warn("Finding intervals between {} and {}"
+                 .format(self.start_data, self.end_data))
 
         intervals = [self.make_interval(timedelta(days=trial_days))
                      for i in range(num_trials)]
@@ -67,7 +80,9 @@ class Backtester(object):
 
         timing_start = timer()
         with Pool(threads) as p:
-            results = p.map(evaluate_interval, func_args)
+            results = [r for r in
+                       tqdm(p.imap_unordered(evaluate_interval, func_args),
+                            total=len(func_args), ncols=80)]
         timing_end = timer()
         elapsed_mins = (timing_end - timing_start) / 60.0
 
@@ -86,18 +101,18 @@ class Backtester(object):
             if strat.percent_return > bah.percent_return:
                 beat_buy_hold += 1
 
-        print("\n\nAggregate across-trials results:\n")
-        print("{} trials took {} mins to process"
-              .format(num_trials, round(elapsed_mins, 1)))
-        print("Average trial length: {} days (set to {})"
-              .format(round(s.mean(length), 2), trial_days))
-        print("Positive return: {}/{}"
-              .format(pos_return, num_trials))
-        print("Returns median: {}%, mean: {}%, stdev: {}%"
-              .format(round(s.median(returns), 2), round(s.mean(returns), 2),
-                      round(s.stdev(returns), 2)))
-        print("Outperformed buy-and-hold: {}/{}"
-              .format(beat_buy_hold, num_trials))
+        log.warn("\n\nAggregate across-trials results:\n")
+        log.warn("{} trials took {} mins to process"
+                 .format(num_trials, round(elapsed_mins, 1)))
+        log.warn("Average trial length: {} days (set to {})"
+                 .format(round(s.mean(length), 2), trial_days))
+        log.warn("Positive return: {}/{}"
+                 .format(pos_return, num_trials))
+        log.warn("Returns median: {}%, mean: {}%, stdev: {}%"
+                 .format(round(s.median(returns), 2), round(s.mean(returns), 2),
+                         round(s.stdev(returns), 2)))
+        log.warn("Outperformed buy-and-hold: {}/{}"
+                 .format(beat_buy_hold, num_trials))
 
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
@@ -108,7 +123,7 @@ class Backtester(object):
 
 def log_value(account, period, sess):
     value = round(account_value_btc(sess, account), 3)
-    print("\nAccount value at {}: {} BTC".format(period, value))
+    log.debug("\nAccount value at {}: {} BTC".format(period, value))
     return value
 
 
@@ -119,10 +134,11 @@ def evaluate_interval(tup):
 
 
 def run_strategy(interval, coins, db_loc, step, balances):
-    print("Backtesting for currencies: {}".format(coins))
     start, stop = interval
-    print("Running backtest between {}->{} at {} intervals"
-          .format(start, stop, step))
+
+    log.debug("Backtesting for currencies: {}".format(coins))
+    log.debug("Running backtest between {}->{} at {} intervals"
+              .format(start, stop, step))
 
     db = create_db(db_loc)
     sess = new_session(db)
@@ -187,7 +203,7 @@ def buy_and_hold(interval, coins, db_loc, step, balances):
         start_value, finish_value, account.fees, account.txns,
         out_of_btc=0, hit_coin_limit=0, high=high, low=low
     )
-    print("\nBuy and hold\n")
+    log.debug("\nBuy and hold\n")
     results.print_results()
 
     return results
