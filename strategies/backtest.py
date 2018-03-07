@@ -2,9 +2,10 @@ from datetime import timedelta
 import random
 import statistics as s
 from timeit import default_timer as timer
+from multiprocessing import Pool
 
 from bot import Bot, account_value_btc
-from db import Ticker
+from db import Ticker, create_db, new_session
 from account import Account
 
 SECS_DAY = 60 * 60 * 24
@@ -47,23 +48,26 @@ class BacktestResult(object):
 
 
 class Backtester(object):
-    def __init__(self, sess, step=timedelta(minutes=10)):
-        self.sess = sess
+    def __init__(self, sess, db_loc, step=timedelta(minutes=10)):
+        self.db_loc = db_loc
         self.balances = {'BTC': 5}
-        self.coins = Ticker.coins(sess)
         self.step = step
+        self.coins = Ticker.coins(sess)
         self.start_data = fetch_data_timestamp(sess, oldest=True)
         self.end_data = fetch_data_timestamp(sess, oldest=False)
 
     def run_backtest(self, num_trials, trial_days, threads=1):
-        timing_start = timer()
         print("Finding intervals between {}->{}"
               .format(self.start_data, self.end_data))
 
         intervals = [self.make_interval(timedelta(days=trial_days))
                      for i in range(num_trials)]
-        results = [(self.run_strategy(i), self.buy_and_hold(i))
-                   for i in intervals]
+        func_args = [[i, self.coins, self.db_loc, self.step, self.balances]
+                     for i in intervals]
+
+        timing_start = timer()
+        with Pool(threads) as p:
+            results = p.map(evaluate_interval, func_args)
         timing_end = timer()
         elapsed_mins = (timing_end - timing_start) / 60.0
 
@@ -101,74 +105,89 @@ class Backtester(object):
         end = min(self.end_data, start + length)
         return (start, end)
 
-    def log_value(self, account, period):
-        value = round(account_value_btc(self.sess, account), 3)
-        print("\nAccount value at {}: {} BTC".format(period, value))
-        return value
 
-    def run_strategy(self, interval):
-        print("Backtesting for currencies: {}".format(self.coins))
-        start, stop = interval
-        print("Running backtest between {}->{} at {} intervals"
-              .format(start, stop, self.step))
+def log_value(account, period, sess):
+    value = round(account_value_btc(sess, account), 3)
+    print("\nAccount value at {}: {} BTC".format(period, value))
+    return value
 
-        period = self.start_data
-        account = Account(self.balances, period, coins=self.coins)
-        start_value = account_value_btc(self.sess, account)
-        bot = Bot(self.sess, account, beginning=start, now=stop)
-        low = high = start_value
 
-        i = 0
-        while period < self.end_data - self.step:
-            period += self.step
-            bot.tick(period)
-            i += 1
-            if i % (0.5 * 6 * 24) == 0:  # twice per day
-                value = self.log_value(account, period)
-                low = min(low, value)
-                high = max(high, value)
+def evaluate_interval(tup):
+    strat = run_strategy(*tup)
+    bah = buy_and_hold(*tup)
+    return (strat, bah)
 
-        finish_value = account_value_btc(self.sess, account)
-        low = min(low, finish_value)
-        high = max(high, finish_value)
 
-        results = BacktestResult(
-            start, stop, self.step,
-            start_value, finish_value,
-            account.fees, account.txns, bot.out_of_btc, bot.hit_coin_limit,
-            high, low
-        )
-        results.print_results()
+def run_strategy(interval, coins, db_loc, step, balances):
+    print("Backtesting for currencies: {}".format(coins))
+    start, stop = interval
+    print("Running backtest between {}->{} at {} intervals"
+          .format(start, stop, step))
 
-        return results
+    db = create_db(db_loc)
+    sess = new_session(db)
 
-    def buy_and_hold(self, interval):
-        start, stop = interval
-        start = start + timedelta(hours=1)  # TODO: why?
-        account = Account(self.balances)
-        # one share of each alt, one share of BTC
-        btc_per_coin = account.balance('BTC') / (len(self.coins) + 1)
-        with_fees = btc_per_coin - (btc_per_coin * 0.0025)
+    period = start
+    account = Account(balances, period, coins=coins)
+    start_value = account_value_btc(sess, account)
+    bot = Bot(sess, account, beginning=start, now=stop)
+    low = high = start_value
 
-        for coin in self.coins:
-            price = Ticker.current_ask(self.sess, coin, now=start)
-            if not price:
-                continue
-            to_buy = with_fees / price
-            cost = account.trade(coin, to_buy, price, start)
-            account.update('BTC', cost, start)
+    i = 0
+    while period < stop - step:
+        period += step
+        bot.tick(period)
+        i += 1
+        if i % (0.5 * 6 * 24) == 0:  # twice per day
+            value = log_value(account, period, sess)
+            low = min(low, value)
+            high = max(high, value)
 
-        start_value = account_value_btc(self.sess, account, now=start)
-        finish_value = account_value_btc(self.sess, account, stop)
-        low = min(start_value, finish_value)
-        high = max(start_value, finish_value)
+    finish_value = account_value_btc(sess, account)
+    low = min(low, finish_value)
+    high = max(high, finish_value)
 
-        results = BacktestResult(
-            start, stop, self.step,
-            start_value, finish_value, account.fees, account.txns,
-            out_of_btc=0, hit_coin_limit=0, high=high, low=low
-        )
-        print("\nBuy and hold\n")
-        results.print_results()
+    results = BacktestResult(
+        start, stop, step,
+        start_value, finish_value,
+        account.fees, account.txns, bot.out_of_btc, bot.hit_coin_limit,
+        high, low
+    )
+    results.print_results()
 
-        return results
+    return results
+
+
+def buy_and_hold(interval, coins, db_loc, step, balances):
+    start, stop = interval
+    start = start + timedelta(hours=1)  # TODO: why?
+    account = Account(balances)
+    # one share of each alt, one share of BTC
+    btc_per_coin = account.balance('BTC') / (len(coins) + 1)
+    with_fees = btc_per_coin - (btc_per_coin * 0.0025)
+
+    db = create_db(db_loc)
+    sess = new_session(db)
+
+    for coin in coins:
+        price = Ticker.current_ask(sess, coin, now=start)
+        if not price:
+            continue
+        to_buy = with_fees / price
+        cost = account.trade(coin, to_buy, price, start)
+        account.update('BTC', cost, start)
+
+    start_value = account_value_btc(sess, account, now=start)
+    finish_value = account_value_btc(sess, account, stop)
+    low = min(start_value, finish_value)
+    high = max(start_value, finish_value)
+
+    results = BacktestResult(
+        start, stop, step,
+        start_value, finish_value, account.fees, account.txns,
+        out_of_btc=0, hit_coin_limit=0, high=high, low=low
+    )
+    print("\nBuy and hold\n")
+    results.print_results()
+
+    return results
