@@ -20,6 +20,6 @@ account: devtesting
 seed: 42
 
 backtesting:
-  trials: 3
+  trials: 100
   trial_days: 10
   threads: 1
