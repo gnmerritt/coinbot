@@ -137,11 +137,11 @@ class Backtester(object):
         total_txns = len(gains) + len(losses)
         p = len(gains) / total_txns
         q = 1 - p
-        a = abs(s.median(losses))
+        a = abs(min(losses))
         b = s.median(gains)
         log.warn("Kelly criteria estimates:\n")
         log.warn(f"p = {len(gains)}/{total_txns} = {round(p, 3)}")
-        log.warn(f"a = median loss = {round(a, 3)}")
+        log.warn(f"a = max loss = {round(a, 3)}")
         log.warn(f"b = median gain = {round(b, 3)}")
         f_star = p / a - q / b
         log.warn(f"f* = p/a - q/b = {round(f_star, 3)}")
