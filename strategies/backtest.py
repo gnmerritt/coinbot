@@ -137,7 +137,7 @@ class Backtester(object):
         total_txns = len(gains) + len(losses)
         p = len(gains) / total_txns
         q = 1 - p
-        a = s.median(losses)
+        a = abs(s.median(losses))
         b = s.median(gains)
         log.warn("Kelly criteria estimates:\n")
         log.warn(f"p = {len(gains)}/{total_txns} = {round(p, 3)}")
@@ -146,7 +146,7 @@ class Backtester(object):
         f_star = p / a - q / b
         log.warn(f"f* = p/a - q/b = {round(f_star, 3)}")
         if f_star > 0:
-            log.warn("f* > 0 => the tested strategy is EV positive")
+            log.error("  f* > 0 => the tested strategy is EV positive")
 
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
