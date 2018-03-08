@@ -25,7 +25,7 @@ def fetch_data_timestamp(sess, oldest=True):
 
 class BacktestResult(object):
     def __init__(self, start, end, step, start_val, finish_val, fees, txns,
-                 out_of_btc, hit_coin_limit, high, low):
+                 gain_txns, loss_txns, out_of_btc, hit_coin_limit, high, low):
         self.start = start
         self.end = end
         self.step = step
@@ -33,6 +33,8 @@ class BacktestResult(object):
         self.finish_val = finish_val
         self.fees = fees
         self.txns = txns
+        self.gain_txns = [n for c, n in gain_txns]
+        self.loss_txns = [n for c, n in loss_txns]
         self.out_of_btc = out_of_btc
         self.hit_coin_limit = hit_coin_limit
         self.high = high
@@ -91,6 +93,8 @@ class Backtester(object):
         returns = []
         length = []
         transactions = []
+        gains = []
+        losses = []
 
         for r in results:
             strat, bah = r
@@ -98,6 +102,9 @@ class Backtester(object):
             returns.append(strat.percent_return)
             transactions.append(len(strat.txns))
             length.append((strat.end - strat.start).total_seconds() / SECS_DAY)
+            gains.extend(strat.gain_txns)
+            losses.extend(strat.loss_txns)
+
             if strat.percent_return > 0:
                 pos_return += 1
             if strat.percent_return > bah.percent_return:
@@ -114,6 +121,7 @@ class Backtester(object):
                  .format(beat_buy_hold, num_trials))
         self.descriptives("Returns", returns, suffix='%')
         self.descriptives("Transactions", transactions)
+        self.estimate_kelly_bet_size(gains, losses)
 
     def descriptives(self, name, field, precision=2, suffix=''):
         log.warn("{} min: {}{s}, median: {}{s}, max: {}{s}, mean: {}{s}, stdev: {}{s}"
@@ -124,6 +132,21 @@ class Backtester(object):
                          round(s.mean(field), precision),
                          round(s.stdev(field), precision),
                          s=suffix))
+
+    def estimate_kelly_bet_size(self, gains, losses):
+        total_txns = len(gains) + len(losses)
+        p = len(gains) / total_txns
+        q = 1 - p
+        a = s.median(losses)
+        b = s.median(gains)
+        log.warn("Kelly criteria estimates:\n")
+        log.warn(f"p = {len(gains)}/{total_txns} = {round(p, 3)}")
+        log.warn(f"a = median loss = {round(a, 3)}")
+        log.warn(f"b = median gain = {round(b, 3)}")
+        f_star = p / a - q / b
+        log.warn(f"f* = p/a - q/b = {round(f_star, 3)}")
+        if f_star > 0:
+            log.warn("f* > 0 => the tested strategy is EV positive")
 
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
@@ -182,10 +205,12 @@ def run_strategy(interval, coins, db_loc, step, balances):
     low = min(low, finish_value)
     high = max(high, finish_value)
 
+    gains, losses = account.evaluate_trades()
     results = BacktestResult(
         start, stop, step,
         start_value, finish_value,
-        account.fees, account.txns, bot.out_of_btc, bot.hit_coin_limit,
+        account.fees, account.txns, gains, losses,
+        bot.out_of_btc, bot.hit_coin_limit,
         high, low
     )
     results.print_results()
@@ -219,7 +244,8 @@ def buy_and_hold(interval, coins, db_loc, step, balances):
     results = BacktestResult(
         start, stop, step,
         start_value, finish_value, account.fees, account.txns,
-        out_of_btc=0, hit_coin_limit=0, high=high, low=low
+        gain_txns=[], loss_txns=[], out_of_btc=0, hit_coin_limit=0,
+        high=high, low=low
     )
     log.debug("\nBuy and hold\n")
     results.print_results()

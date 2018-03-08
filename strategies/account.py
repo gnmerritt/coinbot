@@ -1,4 +1,5 @@
 from datetime import datetime
+import math
 
 BITTREX_FEE = 0.0025
 
@@ -84,14 +85,21 @@ class Account(object):
         open_txns = []  # buys to evaluate
 
         for coin, amount, price, ts in self.txns:
+            if coin == 'BTC':
+                continue  # TODO: do we care about BTC?
+
             if amount > 0:
                 open_txns.append((coin, amount, price))
             else:
                 left_to_sell = amount
+                iters = 0
 
                 # search through the buys we've made to figure out if this sale
                 # was profitable or a loss
                 while open_txns:
+                    iters += 1
+                    if iters > 50:
+                        break
                     buy = open_txns.pop(0)
                     buy_coin, buy_amount, buy_price = buy
                     if coin != buy_coin:
@@ -102,7 +110,11 @@ class Account(object):
                     # of the buy or sell, for mismatched txn sizes
                     remainder = buy_amount - abs(left_to_sell)
                     selling_now = abs(left_to_sell)
-                    if remainder > 0:
+                    if math.isclose(remainder, 0):
+                        pass
+                    elif remainder > 0:
+                        # note: this path shouldn't happen in the bot b/c
+                        # it sells all of an altcoin at once
                         open_txns.append((buy_coin, remainder, buy_price))
                         buy_amount = abs(left_to_sell)
                     elif remainder < 0:
@@ -119,10 +131,12 @@ class Account(object):
                         losses.append((coin, tx_return))
 
                     left_to_sell += selling_now
-                    if left_to_sell == 0:
+                    if math.isclose(left_to_sell, 0):
                         break
 
-                assert left_to_sell == 0, f"leftover {coin}: {left_to_sell}"
+                # helpful for debugging:
+                # assert math.isclose(left_to_sell, 0), \
+                #    f"leftover {coin}: {left_to_sell}, txns: {open_txns}"
 
         return profits, losses
 

@@ -36,18 +36,15 @@ class TestAccount(unittest.TestCase):
 
         profits, losses = account.evaluate_trades()
         self.assertEqual(profits, [])
-        self.assertEqual(len(losses), 1)
-        self.assertEqual(losses[0][0], 'BTC')
-        # 10% loss, plus 2x the transaction fee
-        self.assertAlmostEqual(losses[0][1], -0.105)
+        self.assertEqual(losses, [])
 
         account.update('DCR', -5, 0.08)
         self.assertEqual(account.balance('DCR'), 0)
         self.assertFalse(account.opened('DCR'))
 
         profits, losses = account.evaluate_trades()
-        self.assertEqual(len(losses), 2)
-        dcr_loss = losses[1]
+        self.assertEqual(len(losses), 1)
+        dcr_loss = losses[0]
         self.assertEqual(dcr_loss[0], 'DCR')
         self.assertAlmostEqual(dcr_loss[1], -0.205)
 
