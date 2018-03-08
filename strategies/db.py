@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import OperationalError
 from sqlalchemy import Column, Integer, Float, String, DateTime, Index
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -54,7 +55,7 @@ class Ticker(Base):
             sess.query(Ticker.ask)
                 .filter(Ticker.coin == coin)
                 .order_by(Ticker.timestamp.desc()),
-            now)
+            now).limit(1)
         ask = query.first()
         return ask[0] if ask else None
 
@@ -67,6 +68,9 @@ class Ticker(Base):
     @staticmethod
     def coins(sess):
         return [t[0] for t in sess.query(Ticker.coin).distinct().all()]
+
+
+ticker_timestamp_idx = Index('ticker_ts_idx', Ticker.timestamp)
 
 
 class Balance(Base):
@@ -115,6 +119,10 @@ def create_db(db_string):
     engine = create_engine(db_string)
     Base.metadata.create_all(engine)
     Base.metadata.bind = engine
+    try:
+        ticker_timestamp_idx.create(bind=engine)
+    except OperationalError:
+        pass
     return engine
 
 
