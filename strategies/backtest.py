@@ -135,6 +135,7 @@ def evaluate_interval(tup):
 
 def run_strategy(interval, coins, db_loc, step, balances):
     start, stop = interval
+    assert start < stop
 
     log.debug("Backtesting for currencies: {}".format(coins))
     log.debug("Running backtest between {}->{} at {} intervals"
@@ -176,7 +177,6 @@ def run_strategy(interval, coins, db_loc, step, balances):
 
 def buy_and_hold(interval, coins, db_loc, step, balances):
     start, stop = interval
-    start = start + timedelta(hours=1)  # TODO: why?
     account = Account(balances)
     # one share of each alt, one share of BTC
     btc_per_coin = account.balance('BTC') / (len(coins) + 1)

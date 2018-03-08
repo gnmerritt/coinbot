@@ -139,6 +139,7 @@ def data(sess, config):
 
 
 def backtest(sess, config):
+    data(sess, config)
     bt = config['backtesting']
     tester = Backtester(sess, config['db'])
     tester.run_backtest(bt['trials'], bt['trial_days'], bt['threads'])
