@@ -115,6 +115,8 @@ class Balance(Base):
             sess.delete(existing)
 
 
+# TODO: create a transactions table
+
 def create_db(db_string):
     engine = create_engine(db_string)
     Base.metadata.create_all(engine)

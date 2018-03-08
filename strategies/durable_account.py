@@ -4,7 +4,7 @@ from account import Account
 from db import Balance, Ticker
 
 log = logging.getLogger('default')
-BTC_DIFF_THRESH = 0.001  # one thousandth, about $4
+BTC_DIFF_THRESH = 0.001  # one thousandth, about $10
 
 
 class DurableAccount(Account):

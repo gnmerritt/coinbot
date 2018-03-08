@@ -1,5 +1,7 @@
 from datetime import datetime
 
+BITTREX_FEE = 0.0025
+
 
 class Account(object):
     def __init__(self, initial_balances={}, period=None, opens=None, coins=[]):
@@ -42,7 +44,7 @@ class Account(object):
 
     def trade(self, coin, units, unit_price, period=None, fees=0.0025):
         units = float(units)  # sometimes we get passed Decimals
-        self.update(coin, units, period)
+        self.update(coin, units, unit_price, period)
         fee = fees * units * unit_price
         self.fees += abs(fee)
         gross = units * unit_price
@@ -52,7 +54,7 @@ class Account(object):
             gross -= fee
         return -1 * gross
 
-    def update(self, coin, amount_in, period=None):
+    def update(self, coin, amount_in, price, period=None):
         amount = float(amount_in)
         if period is None:
             period = datetime.utcnow()
@@ -62,7 +64,7 @@ class Account(object):
             raise Exception("Saw overdraft of {} for {} (bal={})"
                             .format(amount, coin, self.balance(coin)))
         self.balances[coin] = new
-        txn = (coin, amount, period)
+        txn = (coin, amount, price, period)
         self.txns.append(txn)
         self.last_txns[coin] = txn
 
@@ -70,6 +72,59 @@ class Account(object):
             del self.position_open_datetimes[coin]
         if current == 0:
             self.position_open_datetimes[coin] = period
+
+    def evaluate_trades(self):
+        """"Return trade outcomes, normalized to amount invested.
+        We will use these to calculate p, a & b to plug into the Kelly formula
+        for f*, the optimal bet size. Currently this number is the same for all
+        coins.
+        """
+        profits = []
+        losses = []
+        open_txns = []  # buys to evaluate
+
+        for coin, amount, price, ts in self.txns:
+            if amount > 0:
+                open_txns.append((coin, amount, price))
+            else:
+                left_to_sell = amount
+
+                # search through the buys we've made to figure out if this sale
+                # was profitable or a loss
+                while open_txns:
+                    buy = open_txns.pop(0)
+                    buy_coin, buy_amount, buy_price = buy
+                    if coin != buy_coin:
+                        open_txns.append(buy)
+                        continue
+
+                    # adjust the sale in this loop iteration to the smallest
+                    # of the buy or sell, for mismatched txn sizes
+                    remainder = buy_amount - abs(left_to_sell)
+                    selling_now = abs(left_to_sell)
+                    if remainder > 0:
+                        open_txns.append((buy_coin, remainder, buy_price))
+                        buy_amount = abs(left_to_sell)
+                    elif remainder < 0:
+                        selling_now = buy_amount
+
+                    # calculate the percentage return
+                    initial = buy_amount * buy_price
+                    final = selling_now * price
+                    tx_return = ((final - initial) / initial) - 2 * BITTREX_FEE
+
+                    if tx_return > 0:
+                        profits.append((coin, tx_return))
+                    else:
+                        losses.append((coin, tx_return))
+
+                    left_to_sell += selling_now
+                    if left_to_sell == 0:
+                        break
+
+                assert left_to_sell == 0, f"leftover {coin}: {left_to_sell}"
+
+        return profits, losses
 
     def save(self, *args):
         pass
