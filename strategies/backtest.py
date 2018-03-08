@@ -2,7 +2,7 @@ from datetime import timedelta
 import random
 import statistics as s
 from timeit import default_timer as timer
-from multiprocessing import Pool
+import multiprocessing as mp
 from tqdm import tqdm
 import logging
 
@@ -79,7 +79,7 @@ class Backtester(object):
                      for i in intervals]
 
         timing_start = timer()
-        with Pool(threads) as p:
+        with mp.Pool(threads) as p:
             results = [r for r in
                        tqdm(p.imap_unordered(evaluate_interval, func_args),
                             total=len(func_args), ncols=80)]
@@ -90,11 +90,13 @@ class Backtester(object):
         pos_return = 0
         returns = []
         length = []
+        transactions = []
 
         for r in results:
             strat, bah = r
 
             returns.append(strat.percent_return)
+            transactions.append(len(strat.txns))
             length.append((strat.end - strat.start).total_seconds() / SECS_DAY)
             if strat.percent_return > 0:
                 pos_return += 1
@@ -108,11 +110,20 @@ class Backtester(object):
                  .format(round(s.mean(length), 2), trial_days))
         log.warn("Positive return: {}/{}"
                  .format(pos_return, num_trials))
-        log.warn("Returns median: {}%, mean: {}%, stdev: {}%"
-                 .format(round(s.median(returns), 2), round(s.mean(returns), 2),
-                         round(s.stdev(returns), 2)))
         log.warn("Outperformed buy-and-hold: {}/{}"
                  .format(beat_buy_hold, num_trials))
+        self.descriptives("Returns", returns, suffix='%')
+        self.descriptives("Transactions", transactions)
+
+    def descriptives(self, name, field, precision=2, suffix=''):
+        log.warn("{} min: {}{s}, median: {}{s}, max: {}{s}, mean: {}{s}, stdev: {}{s}"
+                 .format(name,
+                         round(min(field), precision),
+                         round(s.median(field), precision),
+                         round(max(field), precision),
+                         round(s.mean(field), precision),
+                         round(s.stdev(field), precision),
+                         s=suffix))
 
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
@@ -128,9 +139,16 @@ def log_value(account, period, sess):
 
 
 def evaluate_interval(tup):
-    strat = run_strategy(*tup)
+    strat = [None]
+
+    # uncomment to profile strategy execution:
+    # import cProfile
+    # cProfile.runctx('strat[0] = run_strategy(*tup)', globals(), locals(),
+    #                'backtest-%s.out' % mp.current_process().name)
+
+    strat[0] = run_strategy(*tup)
     bah = buy_and_hold(*tup)
-    return (strat, bah)
+    return (strat[0], bah)
 
 
 def run_strategy(interval, coins, db_loc, step, balances):
