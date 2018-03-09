@@ -144,12 +144,19 @@ class Backtester(object):
         log.warn(f"a_cons = max loss = {round(a_cons, 3)}")
         log.warn(f"b = median gain = {round(b, 3)}")
         f_star = p / a_cons - q / b
-        log.warn(f"f*(conservative) = p/a - q/b = {round(f_star, 3)}")
+        log.warn(f"f*(conservative) = p/a - q/b = {round(f_star, 3)}\n")
 
         a_median = abs(s.median(losses))
         log.warn(f"a_median = max loss = {round(a_median, 3)}")
         f_star_median = p / a_median - q / b
-        log.warn(f"f*(median) = p/a - q/b = {round(f_star_median, 3)}")
+        log.warn(f"f*(median) = p/a - q/b = {round(f_star_median, 3)}\n")
+
+        a_mean = abs(s.mean(losses))
+        b_mean = s.mean(gains)
+        log.warn(f"a_mean = mean loss = {round(a_mean, 3)}")
+        log.warn(f"b_mean = mean gain = {round(b_mean, 3)}")
+        f_star_mean = p / a_mean - q / b_mean
+        log.warn(f"f*(mean) = p/a - q/b = {round(f_star_mean, 3)}")
 
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
