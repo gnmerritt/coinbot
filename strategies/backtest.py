@@ -137,16 +137,19 @@ class Backtester(object):
         total_txns = len(gains) + len(losses)
         p = len(gains) / total_txns
         q = 1 - p
-        a = abs(min(losses))
+        a_cons = abs(min(losses))
         b = s.median(gains)
         log.warn("Kelly criteria estimates:\n")
         log.warn(f"p = {len(gains)}/{total_txns} = {round(p, 3)}")
-        log.warn(f"a = max loss = {round(a, 3)}")
+        log.warn(f"a_cons = max loss = {round(a_cons, 3)}")
         log.warn(f"b = median gain = {round(b, 3)}")
-        f_star = p / a - q / b
-        log.warn(f"f* = p/a - q/b = {round(f_star, 3)}")
-        if f_star > 0:
-            log.error("  f* > 0 => the tested strategy is EV positive")
+        f_star = p / a_cons - q / b
+        log.warn(f"f*(conservative) = p/a - q/b = {round(f_star, 3)}")
+
+        a_median = abs(s.median(losses))
+        log.warn(f"a_median = max loss = {round(a_median, 3)}")
+        f_star_median = p / a_median - q / b
+        log.warn(f"f*(median) = p/a - q/b = {round(f_star_median, 3)}")
 
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
