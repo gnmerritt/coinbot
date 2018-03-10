@@ -58,7 +58,7 @@ class CcxtExchange:
 
 class Bittrex(CcxtExchange):
     COINS = [
-        'BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH',
+        'BTC', 'DCR', 'ZEC', 'ETH', 'XRP', 'XEM', 'XMR', 'DASH', 'BCG',
         'LTC', 'FCT', 'GNO', 'REP', 'NXT', 'STEEM', 'BCH', 'NEO', 'GNT', 'QTUM'
     ]
     BLACKLIST = ['1ST']
