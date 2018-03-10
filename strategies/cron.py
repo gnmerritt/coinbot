@@ -27,7 +27,9 @@ def account(sess, config, verbose=True):
         log.info("{}\n  with current value of *{} BTC*".format(account, value))
         for coin in account.coins:
             print_coin(sess, account, value, coin)
-        log.info("Balances from exchange: {}".format(account.remote_balance()))
+        remotes = {c: b for c, b in account.remote_balance().items()
+                   if b > 0.00_000_001}
+        log.info(f"Balances from exchange: {remotes}")
     return account
 
 
