@@ -148,7 +148,7 @@ class Backtester(object):
         log.warn(f"f*(conservative) = p/a - q/b = {round(f_star, 3)}\n")
 
         a_median = abs(s.median(losses))
-        log.warn(f"a_median = max loss = {round(a_median, 3)}")
+        log.warn(f"a_median = median loss = {round(a_median, 3)}")
         f_star_median = p / a_median - q / b
         log.warn(f"f*(median) = p/a - q/b = {round(f_star_median, 3)}\n")
 
