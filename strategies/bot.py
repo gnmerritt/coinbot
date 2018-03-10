@@ -10,7 +10,7 @@ log = logging.getLogger('default')
 txns = logging.getLogger('txns')
 
 
-def account_value_btc(sess, account, now=None):
+def account_value_btc(sess, account, now):
     # TODO: remove this duplicate
     btc = account.balance('BTC')
     for coin in account.coins:
@@ -30,7 +30,6 @@ class Bot(object):
         self.sess = sess
         self.account = account
         self.beginning = beginning
-        self.now = now if now is not None else datetime.datetime.utcnow()
         self.moving_avg = MovingAverage(sess)
         self.live = live
         self.out_of_btc = 0

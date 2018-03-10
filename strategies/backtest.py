@@ -9,6 +9,7 @@ import logging
 from bot import Bot, account_value_btc
 from db import Ticker, create_db, new_session
 from account import Account
+from durable_account import close_alt_positions
 
 SECS_DAY = 60 * 60 * 24
 
@@ -166,7 +167,7 @@ class Backtester(object):
 
 
 def log_value(account, period, sess):
-    value = round(account_value_btc(sess, account), 3)
+    value = round(account_value_btc(sess, account, period), 3)
     log.debug("\nAccount value at {}: {} BTC".format(period, value))
     return value
 
@@ -197,7 +198,8 @@ def run_strategy(interval, coins, db_loc, step, balances):
 
     period = start
     account = Account(balances, period, coins=coins)
-    start_value = account_value_btc(sess, account)
+    start_value = account_value_btc(sess, account, start)
+    # pass time bounds to bot object for data pre-fetching
     bot = Bot(sess, account, beginning=start, now=stop)
     low = high = start_value
 
@@ -211,7 +213,9 @@ def run_strategy(interval, coins, db_loc, step, balances):
             low = min(low, value)
             high = max(high, value)
 
-    finish_value = account_value_btc(sess, account)
+    close_alt_positions(sess, account, stop)
+    assert len(account.coins) == 1, f"unexpected positions: {account.coins}"
+    finish_value = account.balance('BTC')
     low = min(low, finish_value)
     high = max(high, finish_value)
 

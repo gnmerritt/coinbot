@@ -7,6 +7,14 @@ log = logging.getLogger('default')
 BTC_DIFF_THRESH = 0.001  # one thousandth, about $10
 
 
+def close_alt_positions(sess, account, period):
+    for coin in account.coins:
+        if coin == 'BTC':
+            continue
+        price = Ticker.current_ask(sess, coin, period)
+        account.trade(coin, -account.balance(coin), price, period)
+
+
 class DurableAccount(Account):
     def __init__(self, name, exchange, ccxt, balances={}, opens=None, coins=[]):
         super().__init__(balances, opens=opens, coins=coins)
