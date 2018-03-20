@@ -106,7 +106,7 @@ class Bot(object):
         with_fees = to_spend * 1.003
         if with_fees > self.account.balance('BTC'):
             to_spend = 0.997 * self.account.balance('BTC')
-        if to_spend < 0.0001:
+        if to_spend < 0.0005:
             txns.warn(f"Wanted to buy {coin}, but no BTC available")
             self.out_of_btc += 1
             return False
