@@ -160,6 +160,13 @@ class Backtester(object):
         f_star_mean = p / a_mean - q / b_mean
         log.warn(f"f*(mean) = p/a - q/b = {round(f_star_mean, 3)}")
 
+        log.warn("\nKelly bet size estimate:\n")
+        r = b_mean / a_mean
+        log.warn(f"r = {round(b_mean, 3)} / {round(a_mean, 3)} = {round(r, 3)}")
+        log.warn("K% = p – q / r")
+        k_p = p - q / r
+        log.warn(f"  = {round(p, 3)} - {round(q,3)}/{round(r,3)} = {round(100 * k_p, 2)}%")
+
     def make_interval(self, length):
         data_range = self.end_data - self.start_data - (5 * self.step)
         start = self.start_data + random.random() * data_range
