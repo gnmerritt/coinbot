@@ -40,7 +40,8 @@ class BacktestResult(object):
         self.hit_coin_limit = hit_coin_limit
         self.high = high
         self.low = low
-        self.percent_return = 100 * (finish_val - start_val) / finish_val
+        self.percent_return = 100 * (finish_val - start_val) / start_val
+        assert self.percent_return >= -100.0
 
     def print_results(self):
         log.debug("Ran backtest between {}->{} at {} intervals"
@@ -213,7 +214,7 @@ def run_strategy(interval, coins, db_loc, step, balances):
             low = min(low, value)
             high = max(high, value)
 
-    close_alt_positions(sess, account, stop)
+    close_alt_positions(sess, account, period)
     assert len(account.coins) == 1, f"unexpected positions: {account.coins}"
     finish_value = account.balance('BTC')
     low = min(low, finish_value)

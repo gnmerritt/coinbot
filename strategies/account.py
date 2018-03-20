@@ -124,6 +124,8 @@ class Account(object):
                     initial = buy_amount * buy_price
                     final = selling_now * price
                     tx_return = ((final - initial) / initial) - 2 * BITTREX_FEE
+                    assert tx_return > -100, \
+                        f"{coin} return={tx_return}%, i={initial} f={final}"
 
                     if tx_return > 0:
                         profits.append((coin, tx_return))

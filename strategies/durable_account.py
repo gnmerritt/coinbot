@@ -12,6 +12,7 @@ def close_alt_positions(sess, account, period):
         if coin == 'BTC':
             continue
         price = Ticker.current_ask(sess, coin, period)
+        assert price is not None, f"no price for {coin} at {period}"
         account.trade(coin, -account.balance(coin), price, period)
 
 
