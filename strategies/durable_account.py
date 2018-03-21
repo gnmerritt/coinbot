@@ -13,7 +13,12 @@ def close_alt_positions(sess, account, period):
             continue
         price = Ticker.current_ask(sess, coin, period)
         assert price is not None, f"no price for {coin} at {period}"
-        account.trade(coin, -account.balance(coin), price, period)
+        proceeds = account.trade(coin, -account.balance(coin), price, period)
+        assert proceeds >= 0, f"got {proceeds} when selling {coin}"
+        current = account.balance('BTC')
+        assert current >= 0, f"negative BTC in account"
+        current += proceeds
+        account.balances['BTC'] = current
 
 
 class DurableAccount(Account):
