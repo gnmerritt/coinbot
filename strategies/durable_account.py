@@ -65,6 +65,8 @@ class DurableAccount(Account):
     def respect_remote(self, sess):
         changed = 0
         remote_balances = self.remote_balance()
+        if not remote_balances:
+            return
         coins = set(self.balances.keys()).union(remote_balances.keys())
 
         for coin in coins:
