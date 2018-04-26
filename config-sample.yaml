@@ -19,6 +19,10 @@ account: devtesting
 
 seed: 42
 
+spreadsheet:
+  url: https://something-google.com/here
+  secret: your-spreadsheet-handler-secret-here
+
 backtesting:
   trials: 100
   trial_days: 10

@@ -2,6 +2,7 @@ import sys
 import datetime
 import logging
 import random
+import requests
 
 import config
 from bot import Bot
@@ -31,6 +32,14 @@ def account(sess, config, verbose=True):
                    if b > 0.00_000_001}
         log.info(f"Balances from exchange: {remotes}")
     return account
+
+
+def post_balance(sess, config):
+    acct = account(sess, config, verbose=False)
+    btc = round(acct.value_btc(sess), 8)
+    url = config['spreadsheet']['url']
+    secret = config['spreadsheet']['secret']
+    requests.get(url, params={'secret': secret, 'balance': btc})
 
 
 def print_coin(sess, account, value, coin):
@@ -162,6 +171,7 @@ ACTIONS = {
     'tick': tick,
     'strengths': strengths,
     'pull': pull,
+    'post_balance': post_balance,
 }
 
 
