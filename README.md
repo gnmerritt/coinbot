@@ -20,6 +20,10 @@ python strategies/cron.py config.yaml update tick strengths
 
 I have the bot processing (`update tick`) every 10 mins and displaying account info and strengths a couple times per day. All logging and error handling goes to a slack channel.
 
+### google sheet dashboard
+
+If you'd like, you can set up the bot to periodically send its balance up to a google doc. The code to power the web handler lives in `sheets/`
+
 ## actually trading
 
    * give your API key permission to make market trades
