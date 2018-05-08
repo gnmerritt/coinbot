@@ -34,8 +34,8 @@ def bucket_15m(tickers):
 
 class MovingAverage(object):
     HOURS = [1, 6, 12, 24, 48, 72, 120]
-    WEAK = 1.07
-    STRONG = 1.12
+    WEAK = 1.04
+    STRONG = 1.07
 
     def __init__(self, sess):
         self.sess = sess
