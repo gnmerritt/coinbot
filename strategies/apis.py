@@ -45,7 +45,7 @@ class CcxtExchange:
             try:
                 history = self.ccxt.account_get_orderhistory()
                 orders = history.get('result', [])
-                open = [t for t in orders if r.get('Closed') is not None]
+                open = [r for r in orders if r.get('Closed') is not None]
                 return [{'exchange': r.get('Exchange'), 'type': r.get('OrderType'), 'amount': r.get('Quantity'), 'remaining': r.get('QuantityRemaining')}
                         for r in open]
             except Exception as e:
