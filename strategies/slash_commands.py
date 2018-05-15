@@ -1,5 +1,6 @@
 import sys
-from flask import Flask, jsonify, request
+from threading import Thread
+from flask import Flask, request
 app = Flask(__name__)
 
 import config
@@ -18,10 +19,17 @@ def handle_slack():
         raise Exception("IllegalRequest")
     # user = request.form.get('user_name')
     text = request.form.get('text')
+    if not text:
+        return "No commands"
     commands = [w for w in text.split() if w in ALLOWED_ACTIONS]
 
-    main(parsed, commands)
-    return jsonify({"success": True, "commands": commands})
+    t = Thread(target=action_runner, args=(commands,))
+    t.start()
+    return "Ok"
+
+
+def action_runner(actions):
+    main(parsed, actions)
 
 
 if __name__ == "__main__":
