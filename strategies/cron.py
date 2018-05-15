@@ -24,7 +24,8 @@ def account(sess, config, verbose=True):
                                      exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
         open_txns = account.remote_transactions()
-        account.respect_remote(sess, force_remote=len(open_txns) == 0)
+        definitely_no_txns = open_txns is not None and len(open_txns) > 0
+        account.respect_remote(sess, force_remote=definitely_no_txns)
         value = round(account.value_btc(sess), 8)
         log.info(f"{account}\n  with current value of *{value} BTC*")
         for coin in account.coins:
