@@ -54,6 +54,8 @@ class DurableAccount(Account):
                 continue  # BTC is priced in USD, everything else in BTC
             units = self.balance(coin)
             unit_price = Ticker.current_ask(sess, coin, now)
+            if not unit_price:
+                continue
             value = units * unit_price
             self.values_in_btc[coin] = value
             btc += value
@@ -62,7 +64,10 @@ class DurableAccount(Account):
     def remote_balance(self):
         return self.ccxt.balance()
 
-    def respect_remote(self, sess):
+    def remote_transactions(self):
+        return self.ccxt.fetch_transactions()
+
+    def respect_remote(self, sess, force_remote=False):
         changed = 0
         remote_balances = self.remote_balance()
         if not remote_balances:
@@ -81,7 +86,7 @@ class DurableAccount(Account):
                 continue
 
             actual_diff = remote_balance - local_balance
-            if abs(actual_diff) < allowed_diff:
+            if abs(actual_diff) < allowed_diff or force_remote:
                 perc = 100 if local_balance == 0.0 else round(100 * actual_diff / local_balance, 1)
                 log.warn(f"Updating local {coin} to match remote ({actual_diff} / {perc}%)")
                 self.balances[coin] = remote_balance

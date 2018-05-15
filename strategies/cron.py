@@ -23,14 +23,17 @@ def account(sess, config, verbose=True):
     account = DurableAccount.from_db(sess, name,
                                      exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
-        account.respect_remote(sess)
+        open_txns = account.remote_transactions()
+        account.respect_remote(sess, force_remote=len(open_txns) == 0)
         value = round(account.value_btc(sess), 8)
-        log.info("{}\n  with current value of *{} BTC*".format(account, value))
+        log.info(f"{account}\n  with current value of *{value} BTC*")
         for coin in account.coins:
             print_coin(sess, account, value, coin)
         remotes = {c: b for c, b in account.remote_balance().items()
                    if b > 0.00_000_001}
         log.info(f"Balances from exchange: {remotes}")
+        if open_txns:
+            log.info(f"Open transactions:\n {open_txns}")
     return account
 
 

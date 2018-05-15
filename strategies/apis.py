@@ -40,6 +40,21 @@ class CcxtExchange:
                     return None
                 time.sleep(3)
 
+    def fetch_transactions(self, retries=3):
+        for attempt in range(0, retries):
+            try:
+                history = self.ccxt.account_get_orderhistory()
+                orders = history.get('result', [])
+                open = [t for t in orders if r.get('Closed') is not None]
+                return [{'exchange': r.get('Exchange'), 'type': r.get('OrderType'), 'amount': r.get('Quantity'), 'remaining': r.get('QuantityRemaining')}
+                        for r in open]
+            except Exception as e:
+                if attempt >= retries - 1:
+                    log.error(f"Exception fetching transactions",
+                              exc_info=e.__traceback__)
+                    return None
+            time.sleep(3)
+
     def balance(self, retries=3):
         for attempt in range(0, retries):
             try:
@@ -47,7 +62,8 @@ class CcxtExchange:
                 balances = json['info']
                 non_zero = {info.get('Currency'): info.get('Balance')
                             for info in balances}
-                return {c: b for c, b in non_zero.items() if b > 0}
+                return {c: b for c, b in non_zero.items()
+                        if b > 0 and c not in self.BLACKLIST}
             except Exception as e:
                 if attempt >= retries - 1:
                     log.error("Exception fetching account balance",
