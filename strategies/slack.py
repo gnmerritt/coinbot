@@ -9,8 +9,11 @@ default = logging.getLogger('default')
 def setup_loggers(slack):
     for name in ['default', 'txns', 'cron']:
         username = "{}-{}".format(slack['username'], name)
+        channel = slack['channel']
+        if name == 'txns':
+            channel = slack.get('txns-channel', channel)
         handler = SlackerLogHandler(
-            slack['key'], slack['channel'],
+            slack['key'], channel,
             username=username, icon_emoji=slack['emojis'].get(name)
         )
 
