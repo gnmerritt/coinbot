@@ -75,7 +75,7 @@ class MovingAverage(object):
         buy_str = "buy of '{}' ask {} @ {}".format(ticker, current_price, now)
         if strong_buy:
             log.info("Strong " + buy_str)
-            return 1, current_price
+            return 3, current_price
         if weak_buy:
             log.info("Weak " + buy_str)
             return 0.5, current_price
