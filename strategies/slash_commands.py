@@ -18,14 +18,14 @@ def handle_slack():
     if token != parsed['slack']['token']:
         raise Exception("IllegalRequest")
     # user = request.form.get('user_name')
-    text = request.form.get('text')
-    if not text:
-        return "No commands"
+    text = request.form.get('text', '')
     commands = [w for w in text.split() if w in ALLOWED_ACTIONS]
+    if not commands:
+        return "No commands"
 
     t = Thread(target=action_runner, args=(commands,))
     t.start()
-    return "Ok"
+    return f"Ok: {commands}"
 
 
 def action_runner(actions):
