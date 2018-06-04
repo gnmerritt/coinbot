@@ -88,7 +88,7 @@ class DurableAccount(Account):
             actual_diff = remote_balance - local_balance
             if abs(actual_diff) < allowed_diff or force_remote:
                 perc = 100 if local_balance == 0.0 else round(100 * actual_diff / local_balance, 1)
-                log.warn(f"Updating local {coin} to match remote ({actual_diff} / {perc}%)")
+                log.warn(f"Updating local {coin} to match remote ({round(actual_diff, 5)} / {perc}%)")
                 self.balances[coin] = remote_balance
                 changed += 1
             else:

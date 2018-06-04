@@ -24,8 +24,9 @@ def account(sess, config, verbose=True):
                                      exchange='bittrex', ccxt=Bittrex(config))
     if verbose:
         open_txns = account.remote_transactions()
-        definitely_no_txns = open_txns is not None and len(open_txns) > 0
+        definitely_no_txns = open_txns is not None and len(open_txns) == 0
         account.respect_remote(sess, force_remote=definitely_no_txns)
+
         value = round(account.value_btc(sess), 8)
         log.info(f"{account}\n  with current value of *{value} BTC*")
         for coin in account.coins:
@@ -95,6 +96,10 @@ def tick(sess, config):
     if did_something:
         log.info("Account after buy/sell:")
         account(sess, config)
+
+    txns = acct.remote_transactions()
+    if txns:
+        log.info(f"Open transactions:\n {open_txns}")
 
 
 def strengths(sess, config):
