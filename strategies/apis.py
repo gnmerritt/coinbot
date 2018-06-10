@@ -43,9 +43,8 @@ class CcxtExchange:
     def fetch_transactions(self, retries=3):
         for attempt in range(0, retries):
             try:
-                history = self.ccxt.account_get_orderhistory()
-                orders = history.get('result', [])
-                open = [r for r in orders if r.get('Closed') is None]
+                history = self.ccxt.market_get_openorders()
+                open = history.get('result', [])
                 return [{'exchange': r.get('Exchange'), 'type': r.get('OrderType'), 'amount': r.get('Quantity'), 'remaining': r.get('QuantityRemaining')}
                         for r in open]
             except Exception as e:
