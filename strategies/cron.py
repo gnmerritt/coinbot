@@ -99,7 +99,7 @@ def tick(sess, config):
 
     txns = acct.remote_transactions()
     if txns:
-        log.info(f"Open transactions:\n {open_txns}")
+        log.info(f"Open transactions:\n {txns}")
 
 
 def strengths(sess, config):
