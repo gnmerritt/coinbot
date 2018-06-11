@@ -1,11 +1,12 @@
 import sys
 from threading import Thread
 from flask import Flask, request
-app = Flask(__name__)
 
 import config
 from slack import setup_loggers
 from cron import main
+
+app = Flask(__name__)
 
 ALLOWED_ACTIONS = set([
     'pull', 'account', 'strengths', 'data', 'tick', 'update'

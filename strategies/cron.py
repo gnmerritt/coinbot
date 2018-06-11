@@ -110,9 +110,9 @@ def strengths(sess, config):
     strengths = bot.calculate_strengths(now, approx=True)
 
     time_width = 6
-    msg = ["Coin price vs BTC "
-           + "(negative => currently stronger than period, positive => currently weaker). "
-           + "Ordered weakest to strongest."]
+    msg = ["Coin price vs BTC " +
+           "(negative => currently stronger than period, positive => currently weaker). " +
+           "Ordered weakest to strongest."]
     msg.append("```")
     # header row
     hours = bot.moving_avg.HOURS[1:]  # TODO: make this less fiddly
@@ -144,7 +144,7 @@ def strengths(sess, config):
 
 
 def ipython(sess, config):
-    acct = account(sess, config, verbose=False)
+    acct = account(sess, config, verbose=False)  # noqa: F841
     import ipdb
     ipdb.set_trace()
 

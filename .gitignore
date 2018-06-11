@@ -3,4 +3,5 @@ config.yaml
 data/
 **/__pycache__
 *.bak
-.pyre/**
+**/.pyre/**
+.tox/**
