@@ -1,0 +1,7 @@
+{
+  "binary": "/Users/nathan/py-envs/coins/bin/pyre.bin",
+  "source_directories": [
+    "./strategies"
+  ],
+  "typeshed": "/Users/nathan/py-envs/coins/lib/pyre_check/typeshed/stdlib/"
+}

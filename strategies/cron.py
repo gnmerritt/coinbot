@@ -17,7 +17,7 @@ from util import run
 log = logging.getLogger('cron')
 
 
-def account(sess, config, verbose=True):
+def account(sess, config, verbose=True) -> DurableAccount:
     name = config['account']
     log.debug("Fetching account '{}' @ bittrex".format(name))
     account = DurableAccount.from_db(sess, name,
