@@ -6,7 +6,7 @@ async-timeout==1.2.1
 attrs==18.1.0
 cchardet==2.1.1
 ccxt==1.4.88
-certifi==2017.4.17
+certifi==2022.12.7
 chardet==3.0.4
 click==6.7
 decorator==4.0.11
